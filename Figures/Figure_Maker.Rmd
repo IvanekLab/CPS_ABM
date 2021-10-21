@@ -1,0 +1,2338 @@
+---
+title: "Figure_Maker"
+author: "Cecil W. Barnett-Neefs"
+date: "24/09/2021"
+output: pdf_document
+---
+
+```{r setup}
+library(ggplot2)
+library(GGally)
+library(ggpubr)
+library(gridExtra)
+library(reshape2)
+
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+```
+
+```{r Figure 2}
+Facility_A_validation_shift <- read.csv('Facility_A_Validation_Shift.csv')
+Facility_A_validation_zone <- read.csv('Facility_A_Validation_Zone.csv')
+Facility_A_validation_water <- read.csv('Facility_A_Validation_Water.csv')
+
+Facility_B_validation_shift <- read.csv('Facility_B_Validation_Shift.csv')
+Facility_B_validation_zone <- read.csv('Facility_B_Validation_Zone.csv')
+Facility_B_validation_water <- read.csv('Facility_B_Validation_Water.csv')
+
+Facility_A_sites_mid <- read.csv('Facility_A_Validation_Sites_Mid.csv')
+Facility_A_sites_z2 <- read.csv('Facility_A_Validation_Sites_Z2.csv')
+Facility_A_sites_z3 <- read.csv('Facility_A_Validation_Sites_Z3.csv')
+Facility_A_sites_wet <- read.csv('Facility_A_Validation_Sites_Wet.csv')
+Facility_A_sites_dry <- read.csv('Facility_A_Validation_Sites_Dry.csv')
+
+Facility_B_sites_mid <- read.csv('Facility_B_Validation_Sites_Mid.csv')
+Facility_B_sites_z2 <- read.csv('Facility_B_Validation_Sites_Z2.csv')
+Facility_B_sites_z3 <- read.csv('Facility_B_Validation_Sites_Z3.csv')
+Facility_B_sites_wet <- read.csv('Facility_B_Validation_Sites_Wet.csv')
+Facility_B_sites_dry <- read.csv('Facility_B_Validation_Sites_Dry.csv')
+
+mean_point_mid <- length(which(Facility_A_sites_mid=='pos'))/(length(which(Facility_A_sites_mid=='neg'))+length(which(Facility_A_sites_mid=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_mid=='pos')),(length(which(Facility_A_sites_mid=='neg'))+length(which(Facility_A_sites_mid=='pos'))))
+CI_lower_mid <- exact_binomial_test$conf.int[1]*100
+CI_upper_mid <- exact_binomial_test$conf.int[2]*100
+
+figure_a <- ggplot(Facility_A_validation_shift, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color="#0C7BDC") +
+  geom_boxplot(width = 0.5, color="#0C7BDC") +
+  geom_point(aes(x = 'Mid', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Mid', y = mean_point_mid), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Mid', ymin = CI_lower_mid, ymax = CI_upper_mid), color="black") +
+  xlab('') +
+  scale_x_discrete(labels= c('All Agents')) +
+  ylim(0, 100) +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+mean_point_mid <- length(which(Facility_B_sites_mid=='pos'))/(length(which(Facility_B_sites_mid=='neg'))+length(which(Facility_B_sites_mid=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_B_sites_mid=='pos')),(length(which(Facility_B_sites_mid=='neg'))+length(which(Facility_B_sites_mid=='pos'))))
+CI_lower_mid <- exact_binomial_test$conf.int[1]*100
+CI_upper_mid <- exact_binomial_test$conf.int[2]*100
+
+figure_b <- ggplot(Facility_B_validation_shift, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color="#0C7BDC") +
+  geom_boxplot(width = 0.5, color="#0C7BDC") +
+  geom_point(aes(x = 'Mid', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Mid', y = mean_point_mid), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Mid', ymin = CI_lower_mid, ymax = CI_upper_mid), color="black") +
+  xlab('') +
+  scale_x_discrete(labels= c('All Agents')) +
+  ylim(0, 100) +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+mean_point_z2 <- length(which(Facility_A_sites_z2=='pos'))/(length(which(Facility_A_sites_z2=='neg'))+length(which(Facility_A_sites_z2=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_z2=='pos')),(length(which(Facility_A_sites_z2=='neg'))+length(which(Facility_A_sites_z2=='pos'))))
+CI_lower_z2 <- exact_binomial_test$conf.int[1]*100
+CI_upper_z2 <- exact_binomial_test$conf.int[2]*100
+
+mean_point_z3 <- length(which(Facility_A_sites_z3=='pos'))/(length(which(Facility_A_sites_z3=='neg'))+length(which(Facility_A_sites_z3=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_z3=='pos')),(length(which(Facility_A_sites_z3=='neg'))+length(which(Facility_A_sites_z3=='pos'))))
+CI_lower_z3 <- exact_binomial_test$conf.int[1]*100
+CI_upper_z3 <- exact_binomial_test$conf.int[2]*100
+
+figure_c <- ggplot(Facility_A_validation_zone, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
+  geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
+  geom_point(aes(x = 'Zone 2', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Zone 2', y = mean_point_z2), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Zone 2', ymin = CI_lower_z2, ymax = CI_upper_z2), color="black") +
+  geom_point(aes(x = 'Zone 3', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Zone 3', y = mean_point_z3), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Zone 3', ymin = CI_lower_z3, ymax = CI_upper_z3), color="black") +
+  ylim(0, 100) +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+mean_point_z2 <- length(which(Facility_B_sites_z2=='pos'))/(length(which(Facility_B_sites_z2=='neg'))+length(which(Facility_B_sites_z2=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_B_sites_z2=='pos')),(length(which(Facility_B_sites_z2=='neg'))+length(which(Facility_B_sites_z2=='pos'))))
+CI_lower_z2 <- exact_binomial_test$conf.int[1]*100
+CI_upper_z2 <- exact_binomial_test$conf.int[2]*100
+
+mean_point_z3 <- length(which(Facility_B_sites_z3=='pos'))/(length(which(Facility_B_sites_z3=='neg'))+length(which(Facility_B_sites_z3=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_B_sites_z3=='pos')),(length(which(Facility_B_sites_z3=='neg'))+length(which(Facility_B_sites_z3=='pos'))))
+CI_lower_z3 <- exact_binomial_test$conf.int[1]*100
+CI_upper_z3 <- exact_binomial_test$conf.int[2]*100
+
+figure_d <- ggplot(Facility_B_validation_zone, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
+  geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
+  geom_point(aes(x = 'Zone 2', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Zone 2', y = mean_point_z2), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Zone 2', ymin = CI_lower_z2, ymax = CI_upper_z2), color="black") +
+  geom_point(aes(x = 'Zone 3', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Zone 3', y = mean_point_z3), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Zone 3', ymin = CI_lower_z3, ymax = CI_upper_z3), color="black") +
+  ylim(0, 100) +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+mean_point_wet <- length(which(Facility_A_sites_wet=='pos'))/(length(which(Facility_A_sites_wet=='neg'))+length(which(Facility_A_sites_wet=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_wet=='pos')),(length(which(Facility_A_sites_wet=='neg'))+length(which(Facility_A_sites_wet=='pos'))))
+CI_lower_wet <- exact_binomial_test$conf.int[1]*100
+CI_upper_wet <- exact_binomial_test$conf.int[2]*100
+
+mean_point_dry <- length(which(Facility_A_sites_dry=='pos'))/(length(which(Facility_A_sites_dry=='neg'))+length(which(Facility_A_sites_dry=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_dry=='pos')),(length(which(Facility_A_sites_dry=='neg'))+length(which(Facility_A_sites_dry=='pos'))))
+CI_lower_dry <- exact_binomial_test$conf.int[1]*100
+CI_upper_dry <- exact_binomial_test$conf.int[2]*100
+
+figure_e <- ggplot(Facility_A_validation_water, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
+  geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
+  geom_point(aes(x = 'Wet', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Wet', y = mean_point_wet), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Wet', ymin = CI_lower_wet, ymax = CI_upper_wet), color="black") +
+  geom_point(aes(x = 'Dry', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Dry', y = mean_point_dry), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Dry', ymin = CI_lower_dry, ymax = CI_upper_dry), color="black") +
+  ylim(0, 100) +
+  xlab('Packinghouse Area') +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+mean_point_wet <- length(which(Facility_B_sites_wet=='pos'))/(length(which(Facility_B_sites_wet=='neg'))+length(which(Facility_B_sites_wet=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_B_sites_wet=='pos')),(length(which(Facility_B_sites_wet=='neg'))+length(which(Facility_B_sites_wet=='pos'))))
+CI_lower_wet <- exact_binomial_test$conf.int[1]*100
+CI_upper_wet <- exact_binomial_test$conf.int[2]*100
+
+mean_point_dry <- length(which(Facility_B_sites_dry=='pos'))/(length(which(Facility_B_sites_dry=='neg'))+length(which(Facility_B_sites_dry=='pos')))*100
+exact_binomial_test <- binom.test(length(which(Facility_B_sites_dry=='pos')),(length(which(Facility_B_sites_dry=='neg'))+length(which(Facility_B_sites_dry=='pos'))))
+CI_lower_dry <- exact_binomial_test$conf.int[1]*100
+CI_upper_dry <- exact_binomial_test$conf.int[2]*100
+
+figure_f <- ggplot(Facility_B_validation_water, aes(x=variable, y=value, color=variable)) +
+  stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
+  geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
+  geom_point(aes(x = 'Wet', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Wet', y = mean_point_wet), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Wet', ymin = CI_lower_wet, ymax = CI_upper_wet), color="black") +
+  geom_point(aes(x = 'Dry', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Dry', y = mean_point_dry), color="black", shape = 4) +
+  geom_errorbar(aes(x = 'Dry', ymin = CI_lower_dry, ymax = CI_upper_dry), color="black") +
+  ylim(0, 100) +
+  xlab('Packinghouse Area') +
+  ylab('Prevalence %') +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+    axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+figure_2 <- ggarrange(figure_a, figure_b, figure_c, figure_d, figure_e, figure_f,
+  labels = c('A', 'B', 'C', 'D', 'E', 'F'),
+  ncol = 2,
+  nrow = 3
+)
+
+ggsave("Figure_2.tiff", plot = figure_2, device = "tiff",  width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_2
+```
+
+
+```{r Figure 3}
+#Import
+Facility_A_baseline_prev <- read.csv('Facility_A_Baseline_Prev.csv')
+Facility_A_baseline_prev$area <- as.factor(Facility_A_baseline_prev$area)
+Facility_A_baseline_prev$area <- factor(Facility_A_baseline_prev$area, levels = c('loading', 'cleaning', 'sorting', 'bag packing', 'tray packing', 'reject', 'other'))
+Facility_A_baseline_prev$scenario <- as.factor(Facility_A_baseline_prev$scenario)
+Facility_A_baseline_prev$water <- as.factor(Facility_A_baseline_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$area <- as.factor(Facility_A_baseline_concs$area)
+Facility_A_baseline_concs$area <- factor(Facility_A_baseline_concs$area, levels = c('loading', 'cleaning', 'sorting', 'bag packing', 'tray packing', 'reject', 'other'))
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_B_baseline_prev <- read.csv('Facility_B_Baseline_Prev.csv')
+Facility_B_baseline_prev$area <- as.factor(Facility_B_baseline_prev$area)
+Facility_B_baseline_prev$area <- factor(Facility_B_baseline_prev$area, levels = c('loading', 'cleaning', 'sorting', 'tray packing', 'reject', 'other'))
+Facility_B_baseline_prev$scenario <- as.factor(Facility_B_baseline_prev$scenario)
+Facility_B_baseline_prev$water <- as.factor(Facility_B_baseline_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$area <- as.factor(Facility_B_baseline_concs$area)
+Facility_B_baseline_concs$area <- factor(Facility_B_baseline_concs$area, levels = c('loading', 'cleaning', 'sorting', 'tray packing', 'reject', 'other'))
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+#Plot
+figure_legend <- ggplot(Facility_A_baseline_prev, aes(x=area, y=prevalence, fill=water)) + 
+  geom_boxplot() +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  theme(
+    legend.position = "bottom"
+        )
+legend <- get_legend(figure_legend)
+
+figure_a <- ggplot(Facility_A_baseline_prev, aes(x=area, y=prevalence, fill=water)) + 
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  ggtitle("A") +
+  scale_fill_manual(values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(labels= c("Loading", "Cleaning", "Sorting", "Bag\nPacking", "Tray\nPacking","Reject","Other")) +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 0, face = "plain"),
+    # axis.text.x = element_text(size = 8, angle = 0, hjust = 1, vjust = 1, face = "plain"),
+    # axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+figure_b <- ggplot(Facility_B_baseline_prev, aes(x=area, y=prevalence, fill=water)) + 
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  ggtitle("B") +
+  scale_fill_manual(values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(labels= c("Loading", "Cleaning", "Sorting", "Tray\nPacking","Reject","Other")) +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 0, face = "plain"),
+    # axis.text.x = element_text(size = 8, angle = 0, hjust = 1, vjust = 1, face = "plain"),
+    # axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_baseline_concs), aes(x=area, y=log10(concentration), fill=water)) + 
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  ggtitle("C") +
+  scale_fill_manual(values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(labels= c("Loading", "Cleaning", "Sorting", "Bag\nPacking", "Tray\nPacking","Reject","Other")) +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 0, face = "plain"),
+    # axis.text.x = element_text(size = 8, angle = 0, hjust = 1, vjust = 1, face = "plain"),
+    # axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_baseline_concs), aes(x=area, y=log10(concentration), fill=water)) + 
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  ggtitle("D") +
+  scale_fill_manual(values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(labels= c("Loading", "Cleaning", "Sorting","Tray\nPacking","Reject","Other")) +
+  theme(legend.position = "none") +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 0, face = "plain"),
+    # axis.text.x = element_text(size = 8, angle = 0, hjust = 1, vjust = 1, face = "plain"),
+    # axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")
+  )
+
+# figure_3 <- ggarrange(figure_a, figure_b, figure_c, figure_d,legend,
+#                       labels = c('A', 'B', 'C', 'D'),
+#                       ncol = 2,
+#                       nrow = 3
+# )
+
+figure_3 <- grid.arrange(
+  figure_a, figure_b, figure_c, figure_d, legend,
+  ncol=2, nrow = 3, 
+  layout_matrix = rbind(c(1,2), c(3,4), c(5,5)),
+  widths = c(2.7, 2.7), heights = c(2.7, 2.7,0.2)
+)
+
+ggsave("Figure_3.tiff", plot = figure_3, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+```
+```{r Figure 4}
+Facility_A_data_matrix_melted <- read.csv('Facility_A_Sensitivity_Analysis.csv')
+Facility_B_data_matrix_melted <- read.csv('Facility_B_Sensitivity_Analysis.csv')
+
+figure_a <- ggplot(Facility_A_data_matrix_melted, aes(x = reorder(variable, value), y = value)) +
+  geom_bar(stat = "identity") +
+  ggtitle('') +
+  xlab('') +
+  ylab('') +
+  ylim(-0.25,0.75) +
+  coord_flip() +
+  geom_hline(yintercept = 0) +
+  scale_x_discrete(labels = c(expression(tau[33]),expression("P"["r"]),expression(tau[11]),expression(alpha),expression("P"["z"]),expression("P"[33]),expression("R"["d"]),expression("P"[11]),expression("N"["R"]))) +
+  theme(
+    axis.text.y = element_text(size = 12, angle = 0, face = "plain")
+  )
+
+figure_b <- ggplot(Facility_B_data_matrix_melted, aes(x = reorder(variable, value), y = value)) +
+  geom_bar(stat = "identity") +
+  ggtitle('') +
+  xlab('') +
+  ylab('PRCC') +
+  ylim(-0.25,0.75) +
+  coord_flip() +
+  geom_hline(yintercept = 0) +
+  scale_x_discrete(labels = c(expression(tau[21]),expression(tau[11]),expression("P"[21]),expression(alpha),expression("P"["z"]),expression("P"[31]),expression("P"["r"]),expression("R"["d"]),expression("P"[11]),expression("N"["R"]))) +
+  theme(
+    axis.text.y = element_text(size = 12, angle = 0, face = "plain")
+  )
+
+figure_4 <- ggarrange(
+  figure_a, figure_b,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 1,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_4.tiff", plot = figure_4, width = 19.05, height = 22.23*1, units = "cm", device = "tiff", dpi = 600, compression = "lzw")
+figure_4
+```
+
+```{r Figure 5}
+Facility_A_wet_efficacy <- read.csv('Facility_A_Wet_Efficacy.csv')
+Facility_A_dry_efficacy <- read.csv('Facility_A_Dry_Efficacy.csv')
+
+figure_a <- ggplot(Facility_A_wet_efficacy) +
+  geom_errorbar(aes(x=scenario, y=median, ymin=lower_quartile, ymax=upper_quartile)) +
+  scale_x_discrete(limits=c("PR_01","PR_02","PR_03","LR_01","LR_02","LR_03","PZ_01","PZ_02","PZ_03","PZ_04","LZ_01","LZ_02","LZ_03","EC_01","EC_02","EC_03","EC_04","MI_01","MI_02","AI_01","AI_02","AI_02C1","AI_02C2","AI_03","AI_03C1","AI_03C2","AI_04","CI_01","CI_02","CI_03")) +
+  scale_y_continuous(breaks = seq(from = -100, to = 100, by = 20)) +
+  coord_cartesian(ylim = c(-100, 100)) +
+  geom_point(aes(x = scenario, y = median), color="red", shape=3) +
+  geom_point(aes(x = scenario, y = lower_quartile), color="black") +
+  geom_point(aes(x = scenario, y = upper_quartile), color="black") +
+  xlab('Corrective Action') +
+  ylab('Efficacy (%)') +
+  ggtitle('') +
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+  )
+
+figure_b <- ggplot(Facility_A_dry_efficacy) +
+  geom_errorbar(aes(x=scenario, y=median, ymin=lower_quartile, ymax=upper_quartile)) +
+  scale_x_discrete(limits=c("PR_01","PR_02","PR_03","LR_01","LR_02","LR_03","PZ_01","PZ_02","PZ_03","PZ_04","LZ_01","LZ_02","LZ_03","EC_01","EC_02","EC_03","EC_04","MI_01","MI_02","AI_01","AI_02","AI_02C1","AI_02C2","AI_03","AI_03C1","AI_03C2","AI_04","CI_01","CI_02","CI_03")) +
+  scale_y_continuous(breaks = seq(from = -100, to = 100, by = 20)) +
+  coord_cartesian(ylim = c(-100, 100)) +
+  geom_point(aes(x = scenario, y = median), color="red", shape=3) +
+  geom_point(aes(x = scenario, y = lower_quartile), color="black") +
+  geom_point(aes(x = scenario, y = upper_quartile), color="black") +
+  xlab('Corrective Action') +
+  ylab('Efficacy (%)') +
+  ggtitle('') +
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+  )
+
+figure_5 <- ggarrange(
+  figure_a, figure_b,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 1,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_5.tiff", plot = figure_5, width = 19.05, height = 22.23*0.8, units = "cm", device = "tiff", dpi = 600, compression = "lzw")
+figure_5
+```
+
+```{r Figure 6}
+Facility_B_wet_efficacy <- read.csv('Facility_B_Wet_Efficacy.csv')
+Facility_B_dry_efficacy <- read.csv('Facility_B_Dry_Efficacy.csv')
+
+figure_a <- ggplot(Facility_B_wet_efficacy) +
+  geom_errorbar(aes(x=scenario, y=median, ymin=lower_quartile, ymax=upper_quartile)) +
+  scale_x_discrete(limits=c("PR_01","PR_02","PR_03","LR_01","LR_02","LR_03","PZ_01","PZ_02","PZ_03","PZ_04","LZ_01","LZ_02","LZ_03","EC_01","EC_02","EC_03","EC_04","MI_01","MI_02","AI_01","AI_02","AI_02C1","AI_02C2","AI_03","AI_03C1","AI_03C2","AI_04","CI_01","CI_02","CI_03")) +
+  scale_y_continuous(breaks = seq(from = -100, to = 100, by = 20)) +
+  coord_cartesian(ylim = c(-100, 100)) +
+  geom_point(aes(x = scenario, y = median), color="red", shape=3) +
+  geom_point(aes(x = scenario, y = lower_quartile), color="black") +
+  geom_point(aes(x = scenario, y = upper_quartile), color="black") +
+  xlab('Corrective Action') +
+  ylab('Efficacy (%)') +
+  ggtitle('') +
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+  )
+
+figure_b <- ggplot(Facility_B_dry_efficacy) +
+  geom_errorbar(aes(x=scenario, y=median, ymin=lower_quartile, ymax=upper_quartile)) +
+  scale_x_discrete(limits=c("PR_01","PR_02","PR_03","LR_01","LR_02","LR_03","PZ_01","PZ_02","PZ_03","PZ_04","LZ_01","LZ_02","LZ_03","EC_01","EC_02","EC_03","EC_04","MI_01","MI_02","AI_01","AI_02","AI_02C1","AI_02C2","AI_03","AI_03C1","AI_03C2","AI_04","CI_01","CI_02","CI_03")) +
+  scale_y_continuous(breaks = seq(from = -100, to = 100, by = 20)) +
+  coord_cartesian(ylim = c(-100, 100)) +
+  geom_point(aes(x = scenario, y = median), color="red", shape=3) +
+  geom_point(aes(x = scenario, y = lower_quartile), color="black") +
+  geom_point(aes(x = scenario, y = upper_quartile), color="black") +
+  xlab('Corrective Action') +
+  ylab('Efficacy (%)') +
+  ggtitle('') +
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10, hjust = 1, vjust = 1),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+  )
+
+figure_6 <- ggarrange(
+  figure_a, figure_b,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 1,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_6.tiff", plot = figure_6, width = 19.05, height = 22.23*0.8, units = "cm", device = "tiff", dpi = 600, compression = "lzw")
+figure_6
+```
+
+```{r Figure 7}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_crate_prev_75pc_recombined_prev <- read.csv('Facility_A_EC_01_Recombined_Prev.csv')
+Facility_A_crate_prev_75pc_recombined_prev$scenario <- as.factor(Facility_A_crate_prev_75pc_recombined_prev$scenario)
+Facility_A_crate_prev_75pc_recombined_prev$water <- as.factor(Facility_A_crate_prev_75pc_recombined_prev$water)
+
+Facility_A_crate_prev_75pc_concs <- read.csv('Facility_A_EC_01_Concs.csv')
+Facility_A_crate_prev_75pc_concs$scenario <- as.factor(Facility_A_crate_prev_75pc_concs$scenario)
+Facility_A_crate_prev_75pc_concs$water <- as.factor(Facility_A_crate_prev_75pc_concs$water)
+
+Facility_A_crate_prev_50pc_recombined_prev <- read.csv('Facility_A_EC_02_Recombined_Prev.csv')
+Facility_A_crate_prev_50pc_recombined_prev$scenario <- as.factor(Facility_A_crate_prev_50pc_recombined_prev$scenario)
+Facility_A_crate_prev_50pc_recombined_prev$water <- as.factor(Facility_A_crate_prev_50pc_recombined_prev$water)
+
+Facility_A_crate_prev_50pc_concs <- read.csv('Facility_A_EC_02_Concs.csv')
+Facility_A_crate_prev_50pc_concs$scenario <- as.factor(Facility_A_crate_prev_50pc_concs$scenario)
+Facility_A_crate_prev_50pc_concs$water <- as.factor(Facility_A_crate_prev_50pc_concs$water)
+
+Facility_A_crate_prev_25pc_recombined_prev <- read.csv('Facility_A_EC_03_Recombined_Prev.csv')
+Facility_A_crate_prev_25pc_recombined_prev$scenario <- as.factor(Facility_A_crate_prev_25pc_recombined_prev$scenario)
+Facility_A_crate_prev_25pc_recombined_prev$water <- as.factor(Facility_A_crate_prev_25pc_recombined_prev$water)
+
+Facility_A_crate_prev_25pc_concs <- read.csv('Facility_A_EC_03_Concs.csv')
+Facility_A_crate_prev_25pc_concs$scenario <- as.factor(Facility_A_crate_prev_25pc_concs$scenario)
+Facility_A_crate_prev_25pc_concs$water <- as.factor(Facility_A_crate_prev_25pc_concs$water)
+
+Facility_A_crate_prev_0pc_recombined_prev <- read.csv('Facility_A_EC_04_Recombined_Prev.csv')
+Facility_A_crate_prev_0pc_recombined_prev$scenario <- as.factor(Facility_A_crate_prev_0pc_recombined_prev$scenario)
+Facility_A_crate_prev_0pc_recombined_prev$water <- as.factor(Facility_A_crate_prev_0pc_recombined_prev$water)
+
+Facility_A_crate_prev_0pc_concs <- read.csv('Facility_A_EC_04_Concs.csv')
+Facility_A_crate_prev_0pc_concs$scenario <- as.factor(Facility_A_crate_prev_0pc_concs$scenario)
+Facility_A_crate_prev_0pc_concs$water <- as.factor(Facility_A_crate_prev_0pc_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_EC_01_wet_prev <- Facility_A_crate_prev_75pc_recombined_prev[which(Facility_A_crate_prev_75pc_recombined_prev$water=="Wet"),]
+Facility_A_EC_01_wet_prev$ID <- as.factor(3)
+Facility_A_EC_01_dry_prev <- Facility_A_crate_prev_75pc_recombined_prev[which(Facility_A_crate_prev_75pc_recombined_prev$water=="Dry"),]
+Facility_A_EC_01_dry_prev$ID <- as.factor(4)
+Facility_A_EC_02_wet_prev <- Facility_A_crate_prev_50pc_recombined_prev[which(Facility_A_crate_prev_50pc_recombined_prev$water=="Wet"),]
+Facility_A_EC_02_wet_prev$ID <- as.factor(5)
+Facility_A_EC_02_dry_prev <- Facility_A_crate_prev_50pc_recombined_prev[which(Facility_A_crate_prev_50pc_recombined_prev$water=="Dry"),]
+Facility_A_EC_02_dry_prev$ID <- as.factor(6)
+Facility_A_EC_03_wet_prev <- Facility_A_crate_prev_25pc_recombined_prev[which(Facility_A_crate_prev_25pc_recombined_prev$water=="Wet"),]
+Facility_A_EC_03_wet_prev$ID <- as.factor(7)
+Facility_A_EC_03_dry_prev <- Facility_A_crate_prev_25pc_recombined_prev[which(Facility_A_crate_prev_25pc_recombined_prev$water=="Dry"),]
+Facility_A_EC_03_dry_prev$ID <- as.factor(8)
+Facility_A_EC_04_wet_prev <- Facility_A_crate_prev_0pc_recombined_prev[which(Facility_A_crate_prev_0pc_recombined_prev$water=="Wet"),]
+Facility_A_EC_04_wet_prev$ID <- as.factor(9)
+Facility_A_EC_04_dry_prev <- Facility_A_crate_prev_0pc_recombined_prev[which(Facility_A_crate_prev_0pc_recombined_prev$water=="Dry"),]
+Facility_A_EC_04_dry_prev$ID <- as.factor(10)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_EC_01_wet_concs <- Facility_A_crate_prev_75pc_concs[which(Facility_A_crate_prev_75pc_concs$water=="Wet"),]
+Facility_A_EC_01_wet_concs$ID <- as.factor(3)
+Facility_A_EC_01_dry_concs <- Facility_A_crate_prev_75pc_concs[which(Facility_A_crate_prev_75pc_concs$water=="Dry"),]
+Facility_A_EC_01_dry_concs$ID <- as.factor(4)
+Facility_A_EC_02_wet_concs <- Facility_A_crate_prev_50pc_concs[which(Facility_A_crate_prev_50pc_concs$water=="Wet"),]
+Facility_A_EC_02_wet_concs$ID <- as.factor(5)
+Facility_A_EC_02_dry_concs <- Facility_A_crate_prev_50pc_concs[which(Facility_A_crate_prev_50pc_concs$water=="Dry"),]
+Facility_A_EC_02_dry_concs$ID <- as.factor(6)
+Facility_A_EC_03_wet_concs <- Facility_A_crate_prev_25pc_concs[which(Facility_A_crate_prev_25pc_concs$water=="Wet"),]
+Facility_A_EC_03_wet_concs$ID <- as.factor(7)
+Facility_A_EC_03_dry_concs <- Facility_A_crate_prev_25pc_concs[which(Facility_A_crate_prev_25pc_concs$water=="Dry"),]
+Facility_A_EC_03_dry_concs$ID <- as.factor(8)
+Facility_A_EC_04_wet_concs <- Facility_A_crate_prev_0pc_concs[which(Facility_A_crate_prev_0pc_concs$water=="Wet"),]
+Facility_A_EC_04_wet_concs$ID <- as.factor(9)
+Facility_A_EC_04_dry_concs <- Facility_A_crate_prev_0pc_concs[which(Facility_A_crate_prev_0pc_concs$water=="Dry"),]
+Facility_A_EC_04_dry_concs$ID <- as.factor(10)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_crate_prev_75pc_recombined_prev <- read.csv('Facility_B_EC_01_Recombined_Prev.csv')
+Facility_B_crate_prev_75pc_recombined_prev$scenario <- as.factor(Facility_B_crate_prev_75pc_recombined_prev$scenario)
+Facility_B_crate_prev_75pc_recombined_prev$water <- as.factor(Facility_B_crate_prev_75pc_recombined_prev$water)
+
+Facility_B_crate_prev_75pc_concs <- read.csv('Facility_B_EC_01_Concs.csv')
+Facility_B_crate_prev_75pc_concs$scenario <- as.factor(Facility_B_crate_prev_75pc_concs$scenario)
+Facility_B_crate_prev_75pc_concs$water <- as.factor(Facility_B_crate_prev_75pc_concs$water)
+
+Facility_B_crate_prev_50pc_recombined_prev <- read.csv('Facility_B_EC_02_Recombined_Prev.csv')
+Facility_B_crate_prev_50pc_recombined_prev$scenario <- as.factor(Facility_B_crate_prev_50pc_recombined_prev$scenario)
+Facility_B_crate_prev_50pc_recombined_prev$water <- as.factor(Facility_B_crate_prev_50pc_recombined_prev$water)
+
+Facility_B_crate_prev_50pc_concs <- read.csv('Facility_B_EC_02_Concs.csv')
+Facility_B_crate_prev_50pc_concs$scenario <- as.factor(Facility_B_crate_prev_50pc_concs$scenario)
+Facility_B_crate_prev_50pc_concs$water <- as.factor(Facility_B_crate_prev_50pc_concs$water)
+
+Facility_B_crate_prev_25pc_recombined_prev <- read.csv('Facility_B_EC_03_Recombined_Prev.csv')
+Facility_B_crate_prev_25pc_recombined_prev$scenario <- as.factor(Facility_B_crate_prev_25pc_recombined_prev$scenario)
+Facility_B_crate_prev_25pc_recombined_prev$water <- as.factor(Facility_B_crate_prev_25pc_recombined_prev$water)
+
+Facility_B_crate_prev_25pc_concs <- read.csv('Facility_B_EC_03_Concs.csv')
+Facility_B_crate_prev_25pc_concs$scenario <- as.factor(Facility_B_crate_prev_25pc_concs$scenario)
+Facility_B_crate_prev_25pc_concs$water <- as.factor(Facility_B_crate_prev_25pc_concs$water)
+
+Facility_B_crate_prev_0pc_recombined_prev <- read.csv('Facility_B_EC_04_Recombined_Prev.csv')
+Facility_B_crate_prev_0pc_recombined_prev$scenario <- as.factor(Facility_B_crate_prev_0pc_recombined_prev$scenario)
+Facility_B_crate_prev_0pc_recombined_prev$water <- as.factor(Facility_B_crate_prev_0pc_recombined_prev$water)
+
+Facility_B_crate_prev_0pc_concs <- read.csv('Facility_B_EC_04_Concs.csv')
+Facility_B_crate_prev_0pc_concs$scenario <- as.factor(Facility_B_crate_prev_0pc_concs$scenario)
+Facility_B_crate_prev_0pc_concs$water <- as.factor(Facility_B_crate_prev_0pc_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_EC_01_wet_prev <- Facility_B_crate_prev_75pc_recombined_prev[which(Facility_B_crate_prev_75pc_recombined_prev$water=="Wet"),]
+Facility_B_EC_01_wet_prev$ID <- as.factor(3)
+Facility_B_EC_01_dry_prev <- Facility_B_crate_prev_75pc_recombined_prev[which(Facility_B_crate_prev_75pc_recombined_prev$water=="Dry"),]
+Facility_B_EC_01_dry_prev$ID <- as.factor(4)
+Facility_B_EC_02_wet_prev <- Facility_B_crate_prev_50pc_recombined_prev[which(Facility_B_crate_prev_50pc_recombined_prev$water=="Wet"),]
+Facility_B_EC_02_wet_prev$ID <- as.factor(5)
+Facility_B_EC_02_dry_prev <- Facility_B_crate_prev_50pc_recombined_prev[which(Facility_B_crate_prev_50pc_recombined_prev$water=="Dry"),]
+Facility_B_EC_02_dry_prev$ID <- as.factor(6)
+Facility_B_EC_03_wet_prev <- Facility_B_crate_prev_25pc_recombined_prev[which(Facility_B_crate_prev_25pc_recombined_prev$water=="Wet"),]
+Facility_B_EC_03_wet_prev$ID <- as.factor(7)
+Facility_B_EC_03_dry_prev <- Facility_B_crate_prev_25pc_recombined_prev[which(Facility_B_crate_prev_25pc_recombined_prev$water=="Dry"),]
+Facility_B_EC_03_dry_prev$ID <- as.factor(8)
+Facility_B_EC_04_wet_prev <- Facility_B_crate_prev_0pc_recombined_prev[which(Facility_B_crate_prev_0pc_recombined_prev$water=="Wet"),]
+Facility_B_EC_04_wet_prev$ID <- as.factor(9)
+Facility_B_EC_04_dry_prev <- Facility_B_crate_prev_0pc_recombined_prev[which(Facility_B_crate_prev_0pc_recombined_prev$water=="Dry"),]
+Facility_B_EC_04_dry_prev$ID <- as.factor(10)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_EC_01_wet_concs <- Facility_B_crate_prev_75pc_concs[which(Facility_B_crate_prev_75pc_concs$water=="Wet"),]
+Facility_B_EC_01_wet_concs$ID <- as.factor(3)
+Facility_B_EC_01_dry_concs <- Facility_B_crate_prev_75pc_concs[which(Facility_B_crate_prev_75pc_concs$water=="Dry"),]
+Facility_B_EC_01_dry_concs$ID <- as.factor(4)
+Facility_B_EC_02_wet_concs <- Facility_B_crate_prev_50pc_concs[which(Facility_B_crate_prev_50pc_concs$water=="Wet"),]
+Facility_B_EC_02_wet_concs$ID <- as.factor(5)
+Facility_B_EC_02_dry_concs <- Facility_B_crate_prev_50pc_concs[which(Facility_B_crate_prev_50pc_concs$water=="Dry"),]
+Facility_B_EC_02_dry_concs$ID <- as.factor(6)
+Facility_B_EC_03_wet_concs <- Facility_B_crate_prev_25pc_concs[which(Facility_B_crate_prev_25pc_concs$water=="Wet"),]
+Facility_B_EC_03_wet_concs$ID <- as.factor(7)
+Facility_B_EC_03_dry_concs <- Facility_B_crate_prev_25pc_concs[which(Facility_B_crate_prev_25pc_concs$water=="Dry"),]
+Facility_B_EC_03_dry_concs$ID <- as.factor(8)
+Facility_B_EC_04_wet_concs <- Facility_B_crate_prev_0pc_concs[which(Facility_B_crate_prev_0pc_concs$water=="Wet"),]
+Facility_B_EC_04_wet_concs$ID <- as.factor(9)
+Facility_B_EC_04_dry_concs <- Facility_B_crate_prev_0pc_concs[which(Facility_B_crate_prev_0pc_concs$water=="Dry"),]
+Facility_B_EC_04_dry_concs$ID <- as.factor(10)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev, Facility_A_base_dry_prev, Facility_A_EC_01_wet_prev, Facility_A_EC_01_dry_prev, Facility_A_EC_02_wet_prev, Facility_A_EC_02_dry_prev, Facility_A_EC_03_wet_prev, Facility_A_EC_03_dry_prev, Facility_A_EC_04_wet_prev, Facility_A_EC_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "EC_01", "EC_02","EC_03","EC_04","Baseline", "EC_01", "EC_02","EC_03","EC_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev, Facility_B_base_dry_prev, Facility_B_EC_01_wet_prev, Facility_B_EC_01_dry_prev, Facility_B_EC_02_wet_prev, Facility_B_EC_02_dry_prev, Facility_B_EC_03_wet_prev, Facility_B_EC_03_dry_prev, Facility_B_EC_04_wet_prev, Facility_B_EC_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "EC_01", "EC_02","EC_03","EC_04","Baseline", "EC_01", "EC_02","EC_03","EC_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs, Facility_A_base_dry_concs, Facility_A_EC_01_wet_concs, Facility_A_EC_01_dry_concs, Facility_A_EC_02_wet_concs, Facility_A_EC_02_dry_concs, Facility_A_EC_03_wet_concs, Facility_A_EC_03_dry_concs, Facility_A_EC_04_wet_concs, Facility_A_EC_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "EC_01", "EC_02","EC_03","EC_04","Baseline", "EC_01", "EC_02","EC_03","EC_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs, Facility_B_base_dry_concs, Facility_B_EC_01_wet_concs, Facility_B_EC_01_dry_concs, Facility_B_EC_02_wet_concs, Facility_B_EC_02_dry_concs, Facility_B_EC_03_wet_concs, Facility_B_EC_03_dry_concs, Facility_B_EC_04_wet_concs, Facility_B_EC_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "EC_01", "EC_02","EC_03","EC_04","Baseline", "EC_01", "EC_02","EC_03","EC_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_7 <- ggarrange(
+  figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_7.tiff", plot = figure_7, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_7
+```
+
+```{r Figure 8}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_MI_01_recombined_prev <- read.csv('Facility_A_MI_01_Recombined_Prev.csv')
+Facility_A_MI_01_recombined_prev$scenario <- as.factor(Facility_A_MI_01_recombined_prev$scenario)
+Facility_A_MI_01_recombined_prev$water <- as.factor(Facility_A_MI_01_recombined_prev$water)
+
+Facility_A_MI_01_concs <- read.csv('Facility_A_MI_01_Concs.csv')
+Facility_A_MI_01_concs$scenario <- as.factor(Facility_A_MI_01_concs$scenario)
+Facility_A_MI_01_concs$water <- as.factor(Facility_A_MI_01_concs$water)
+
+Facility_A_MI_02_recombined_prev <- read.csv('Facility_A_MI_02_Recombined_Prev.csv')
+Facility_A_MI_02_recombined_prev$scenario <- as.factor(Facility_A_MI_02_recombined_prev$scenario)
+Facility_A_MI_02_recombined_prev$water <- as.factor(Facility_A_MI_02_recombined_prev$water)
+
+Facility_A_MI_02_concs <- read.csv('Facility_A_MI_02_Concs.csv')
+Facility_A_MI_02_concs$scenario <- as.factor(Facility_A_MI_02_concs$scenario)
+Facility_A_MI_02_concs$water <- as.factor(Facility_A_MI_02_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_MI_01_wet_prev <- Facility_A_MI_01_recombined_prev[which(Facility_A_MI_01_recombined_prev$water=="Wet"),]
+Facility_A_MI_01_wet_prev$ID <- as.factor(3)
+Facility_A_MI_01_dry_prev <- Facility_A_MI_01_recombined_prev[which(Facility_A_MI_01_recombined_prev$water=="Dry"),]
+Facility_A_MI_01_dry_prev$ID <- as.factor(4)
+Facility_A_MI_02_wet_prev <- Facility_A_MI_02_recombined_prev[which(Facility_A_MI_02_recombined_prev$water=="Wet"),]
+Facility_A_MI_02_wet_prev$ID <- as.factor(5)
+Facility_A_MI_02_dry_prev <- Facility_A_MI_02_recombined_prev[which(Facility_A_MI_02_recombined_prev$water=="Dry"),]
+Facility_A_MI_02_dry_prev$ID <- as.factor(6)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_MI_01_wet_concs <- Facility_A_MI_01_concs[which(Facility_A_MI_01_concs$water=="Wet"),]
+Facility_A_MI_01_wet_concs$ID <- as.factor(3)
+Facility_A_MI_01_dry_concs <- Facility_A_MI_01_concs[which(Facility_A_MI_01_concs$water=="Dry"),]
+Facility_A_MI_01_dry_concs$ID <- as.factor(4)
+Facility_A_MI_02_wet_concs <- Facility_A_MI_02_concs[which(Facility_A_MI_02_concs$water=="Wet"),]
+Facility_A_MI_02_wet_concs$ID <- as.factor(5)
+Facility_A_MI_02_dry_concs <- Facility_A_MI_02_concs[which(Facility_A_MI_02_concs$water=="Dry"),]
+Facility_A_MI_02_dry_concs$ID <- as.factor(6)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_MI_01_recombined_prev <- read.csv('Facility_B_MI_01_Recombined_Prev.csv')
+Facility_B_MI_01_recombined_prev$scenario <- as.factor(Facility_B_MI_01_recombined_prev$scenario)
+Facility_B_MI_01_recombined_prev$water <- as.factor(Facility_B_MI_01_recombined_prev$water)
+
+Facility_B_MI_01_concs <- read.csv('Facility_B_MI_01_Concs.csv')
+Facility_B_MI_01_concs$scenario <- as.factor(Facility_B_MI_01_concs$scenario)
+Facility_B_MI_01_concs$water <- as.factor(Facility_B_MI_01_concs$water)
+
+Facility_B_MI_02_recombined_prev <- read.csv('Facility_B_MI_02_Recombined_Prev.csv')
+Facility_B_MI_02_recombined_prev$scenario <- as.factor(Facility_B_MI_02_recombined_prev$scenario)
+Facility_B_MI_02_recombined_prev$water <- as.factor(Facility_B_MI_02_recombined_prev$water)
+
+Facility_B_MI_02_concs <- read.csv('Facility_B_MI_02_Concs.csv')
+Facility_B_MI_02_concs$scenario <- as.factor(Facility_B_MI_02_concs$scenario)
+Facility_B_MI_02_concs$water <- as.factor(Facility_B_MI_02_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_MI_01_wet_prev <- Facility_B_MI_01_recombined_prev[which(Facility_B_MI_01_recombined_prev$water=="Wet"),]
+Facility_B_MI_01_wet_prev$ID <- as.factor(3)
+Facility_B_MI_01_dry_prev <- Facility_B_MI_01_recombined_prev[which(Facility_B_MI_01_recombined_prev$water=="Dry"),]
+Facility_B_MI_01_dry_prev$ID <- as.factor(4)
+Facility_B_MI_02_wet_prev <- Facility_B_MI_02_recombined_prev[which(Facility_B_MI_02_recombined_prev$water=="Wet"),]
+Facility_B_MI_02_wet_prev$ID <- as.factor(5)
+Facility_B_MI_02_dry_prev <- Facility_B_MI_02_recombined_prev[which(Facility_B_MI_02_recombined_prev$water=="Dry"),]
+Facility_B_MI_02_dry_prev$ID <- as.factor(6)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_MI_01_wet_concs <- Facility_B_MI_01_concs[which(Facility_B_MI_01_concs$water=="Wet"),]
+Facility_B_MI_01_wet_concs$ID <- as.factor(3)
+Facility_B_MI_01_dry_concs <- Facility_B_MI_01_concs[which(Facility_B_MI_01_concs$water=="Dry"),]
+Facility_B_MI_01_dry_concs$ID <- as.factor(4)
+Facility_B_MI_02_wet_concs <- Facility_B_MI_02_concs[which(Facility_B_MI_02_concs$water=="Wet"),]
+Facility_B_MI_02_wet_concs$ID <- as.factor(5)
+Facility_B_MI_02_dry_concs <- Facility_B_MI_02_concs[which(Facility_B_MI_02_concs$water=="Dry"),]
+Facility_B_MI_02_dry_concs$ID <- as.factor(6)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_MI_01_wet_prev,Facility_A_MI_01_dry_prev,Facility_A_MI_02_wet_prev,Facility_A_MI_02_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","2","4","6"),
+    labels= c("Baseline", "MI_01", "MI_02", "Baseline", "MI_01", "MI_02")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_MI_01_wet_prev,Facility_B_MI_01_dry_prev,Facility_B_MI_02_wet_prev,Facility_B_MI_02_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","2","4","6"),
+    labels= c("Baseline", "MI_01", "MI_02", "Baseline", "MI_01", "MI_02")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_MI_01_wet_concs,Facility_A_MI_01_dry_concs,Facility_A_MI_02_wet_concs,Facility_A_MI_02_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","2","4","6"),
+    labels= c("Baseline", "MI_01", "MI_02", "Baseline", "MI_01", "MI_02")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_MI_01_wet_concs,Facility_B_MI_01_dry_concs,Facility_B_MI_02_wet_concs,Facility_B_MI_02_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","2","4","6"),
+    labels= c("Baseline", "MI_01", "MI_02", "Baseline", "MI_01", "MI_02")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_8 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_8.tiff", plot = figure_8, device = "tiff",  width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_8
+```
+
+```{r Figure 9}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_AI_01_recombined_prev <- read.csv('Facility_A_AI_01_Recombined_Prev.csv')
+Facility_A_AI_01_recombined_prev$scenario <- as.factor(Facility_A_AI_01_recombined_prev$scenario)
+Facility_A_AI_01_recombined_prev$water <- as.factor(Facility_A_AI_01_recombined_prev$water)
+
+Facility_A_AI_01_concs <- read.csv('Facility_A_AI_01_Concs.csv')
+Facility_A_AI_01_concs$scenario <- as.factor(Facility_A_AI_01_concs$scenario)
+Facility_A_AI_01_concs$water <- as.factor(Facility_A_AI_01_concs$water)
+
+Facility_A_AI_02C1_recombined_prev <- read.csv('Facility_A_AI_02C1_Recombined_Prev.csv')
+Facility_A_AI_02C1_recombined_prev$scenario <- as.factor(Facility_A_AI_02C1_recombined_prev$scenario)
+Facility_A_AI_02C1_recombined_prev$water <- as.factor(Facility_A_AI_02C1_recombined_prev$water)
+
+Facility_A_AI_02C1_concs <- read.csv('Facility_A_AI_02C1_Concs.csv')
+Facility_A_AI_02C1_concs$scenario <- as.factor(Facility_A_AI_02C1_concs$scenario)
+Facility_A_AI_02C1_concs$water <- as.factor(Facility_A_AI_02C1_concs$water)
+
+Facility_A_AI_02C2_recombined_prev <- read.csv('Facility_A_AI_02C2_Recombined_Prev.csv')
+Facility_A_AI_02C2_recombined_prev$scenario <- as.factor(Facility_A_AI_02C2_recombined_prev$scenario)
+Facility_A_AI_02C2_recombined_prev$water <- as.factor(Facility_A_AI_02C2_recombined_prev$water)
+
+Facility_A_AI_02C2_concs <- read.csv('Facility_A_AI_02C2_Concs.csv')
+Facility_A_AI_02C2_concs$scenario <- as.factor(Facility_A_AI_02C2_concs$scenario)
+Facility_A_AI_02C2_concs$water <- as.factor(Facility_A_AI_02C2_concs$water)
+
+Facility_A_AI_03C1_recombined_prev <- read.csv('Facility_A_AI_03C1_Recombined_Prev.csv')
+Facility_A_AI_03C1_recombined_prev$scenario <- as.factor(Facility_A_AI_03C1_recombined_prev$scenario)
+Facility_A_AI_03C1_recombined_prev$water <- as.factor(Facility_A_AI_03C1_recombined_prev$water)
+
+Facility_A_AI_03C1_concs <- read.csv('Facility_A_AI_03C1_Concs.csv')
+Facility_A_AI_03C1_concs$scenario <- as.factor(Facility_A_AI_03C1_concs$scenario)
+Facility_A_AI_03C1_concs$water <- as.factor(Facility_A_AI_03C1_concs$water)
+
+Facility_A_AI_03C2_recombined_prev <- read.csv('Facility_A_AI_03C2_Recombined_Prev.csv')
+Facility_A_AI_03C2_recombined_prev$scenario <- as.factor(Facility_A_AI_03C2_recombined_prev$scenario)
+Facility_A_AI_03C2_recombined_prev$water <- as.factor(Facility_A_AI_03C2_recombined_prev$water)
+
+Facility_A_AI_03C2_concs <- read.csv('Facility_A_AI_03C2_Concs.csv')
+Facility_A_AI_03C2_concs$scenario <- as.factor(Facility_A_AI_03C2_concs$scenario)
+Facility_A_AI_03C2_concs$water <- as.factor(Facility_A_AI_03C2_concs$water)
+
+Facility_A_AI_04_recombined_prev <- read.csv('Facility_A_AI_04_Recombined_Prev.csv')
+Facility_A_AI_04_recombined_prev$scenario <- as.factor(Facility_A_AI_04_recombined_prev$scenario)
+Facility_A_AI_04_recombined_prev$water <- as.factor(Facility_A_AI_04_recombined_prev$water)
+
+Facility_A_AI_04_concs <- read.csv('Facility_A_AI_04_Concs.csv')
+Facility_A_AI_04_concs$scenario <- as.factor(Facility_A_AI_04_concs$scenario)
+Facility_A_AI_04_concs$water <- as.factor(Facility_A_AI_04_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_AI_01_wet_prev <- Facility_A_AI_01_recombined_prev[which(Facility_A_AI_01_recombined_prev$water=="Wet"),]
+Facility_A_AI_01_wet_prev$ID <- as.factor(3)
+Facility_A_AI_01_dry_prev <- Facility_A_AI_01_recombined_prev[which(Facility_A_AI_01_recombined_prev$water=="Dry"),]
+Facility_A_AI_01_dry_prev$ID <- as.factor(4)
+Facility_A_AI_02C1_wet_prev <- Facility_A_AI_02C1_recombined_prev[which(Facility_A_AI_02C1_recombined_prev$water=="Wet"),]
+Facility_A_AI_02C1_wet_prev$ID <- as.factor(5)
+Facility_A_AI_02C1_dry_prev <- Facility_A_AI_02C1_recombined_prev[which(Facility_A_AI_02C1_recombined_prev$water=="Dry"),]
+Facility_A_AI_02C1_dry_prev$ID <- as.factor(6)
+Facility_A_AI_02C2_wet_prev <- Facility_A_AI_02C2_recombined_prev[which(Facility_A_AI_02C2_recombined_prev$water=="Wet"),]
+Facility_A_AI_02C2_wet_prev$ID <- as.factor(7)
+Facility_A_AI_02C2_dry_prev <- Facility_A_AI_02C2_recombined_prev[which(Facility_A_AI_02C2_recombined_prev$water=="Dry"),]
+Facility_A_AI_02C2_dry_prev$ID <- as.factor(8)
+Facility_A_AI_03C1_wet_prev <- Facility_A_AI_03C1_recombined_prev[which(Facility_A_AI_03C1_recombined_prev$water=="Wet"),]
+Facility_A_AI_03C1_wet_prev$ID <- as.factor(9)
+Facility_A_AI_03C1_dry_prev <- Facility_A_AI_03C1_recombined_prev[which(Facility_A_AI_03C1_recombined_prev$water=="Dry"),]
+Facility_A_AI_03C1_dry_prev$ID <- as.factor(10)
+Facility_A_AI_03C2_wet_prev <- Facility_A_AI_03C2_recombined_prev[which(Facility_A_AI_03C2_recombined_prev$water=="Wet"),]
+Facility_A_AI_03C2_wet_prev$ID <- as.factor(11)
+Facility_A_AI_03C2_dry_prev <- Facility_A_AI_03C2_recombined_prev[which(Facility_A_AI_03C2_recombined_prev$water=="Dry"),]
+Facility_A_AI_03C2_dry_prev$ID <- as.factor(12)
+Facility_A_AI_04_wet_prev <- Facility_A_AI_04_recombined_prev[which(Facility_A_AI_04_recombined_prev$water=="Wet"),]
+Facility_A_AI_04_wet_prev$ID <- as.factor(13)
+Facility_A_AI_04_dry_prev <- Facility_A_AI_04_recombined_prev[which(Facility_A_AI_04_recombined_prev$water=="Dry"),]
+Facility_A_AI_04_dry_prev$ID <- as.factor(14)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_AI_01_wet_concs <- Facility_A_AI_01_concs[which(Facility_A_AI_01_concs$water=="Wet"),]
+Facility_A_AI_01_wet_concs$ID <- as.factor(3)
+Facility_A_AI_01_dry_concs <- Facility_A_AI_01_concs[which(Facility_A_AI_01_concs$water=="Dry"),]
+Facility_A_AI_01_dry_concs$ID <- as.factor(4)
+Facility_A_AI_02C1_wet_concs <- Facility_A_AI_02C1_concs[which(Facility_A_AI_02C1_concs$water=="Wet"),]
+Facility_A_AI_02C1_wet_concs$ID <- as.factor(5)
+Facility_A_AI_02C1_dry_concs <- Facility_A_AI_02C1_concs[which(Facility_A_AI_02C1_concs$water=="Dry"),]
+Facility_A_AI_02C1_dry_concs$ID <- as.factor(6)
+Facility_A_AI_02C2_wet_concs <- Facility_A_AI_02C2_concs[which(Facility_A_AI_02C2_concs$water=="Wet"),]
+Facility_A_AI_02C2_wet_concs$ID <- as.factor(7)
+Facility_A_AI_02C2_dry_concs <- Facility_A_AI_02C2_concs[which(Facility_A_AI_02C2_concs$water=="Dry"),]
+Facility_A_AI_02C2_dry_concs$ID <- as.factor(8)
+Facility_A_AI_03C1_wet_concs <- Facility_A_AI_03C1_concs[which(Facility_A_AI_03C1_concs$water=="Wet"),]
+Facility_A_AI_03C1_wet_concs$ID <- as.factor(9)
+Facility_A_AI_03C1_dry_concs <- Facility_A_AI_03C1_concs[which(Facility_A_AI_03C1_concs$water=="Dry"),]
+Facility_A_AI_03C1_dry_concs$ID <- as.factor(10)
+Facility_A_AI_03C2_wet_concs <- Facility_A_AI_03C2_concs[which(Facility_A_AI_03C2_concs$water=="Wet"),]
+Facility_A_AI_03C2_wet_concs$ID <- as.factor(11)
+Facility_A_AI_03C2_dry_concs <- Facility_A_AI_03C2_concs[which(Facility_A_AI_03C2_concs$water=="Dry"),]
+Facility_A_AI_03C2_dry_concs$ID <- as.factor(12)
+Facility_A_AI_04_wet_concs <- Facility_A_AI_04_concs[which(Facility_A_AI_04_concs$water=="Wet"),]
+Facility_A_AI_04_wet_concs$ID <- as.factor(13)
+Facility_A_AI_04_dry_concs <- Facility_A_AI_04_concs[which(Facility_A_AI_04_concs$water=="Dry"),]
+Facility_A_AI_04_dry_concs$ID <- as.factor(14)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_AI_01_recombined_prev <- read.csv('Facility_B_AI_01_Recombined_Prev.csv')
+Facility_B_AI_01_recombined_prev$scenario <- as.factor(Facility_B_AI_01_recombined_prev$scenario)
+Facility_B_AI_01_recombined_prev$water <- as.factor(Facility_B_AI_01_recombined_prev$water)
+
+Facility_B_AI_01_concs <- read.csv('Facility_B_AI_01_Concs.csv')
+Facility_B_AI_01_concs$scenario <- as.factor(Facility_B_AI_01_concs$scenario)
+Facility_B_AI_01_concs$water <- as.factor(Facility_B_AI_01_concs$water)
+
+Facility_B_AI_02_recombined_prev <- read.csv('Facility_B_AI_02_Recombined_Prev.csv')
+Facility_B_AI_02_recombined_prev$scenario <- as.factor(Facility_B_AI_02_recombined_prev$scenario)
+Facility_B_AI_02_recombined_prev$water <- as.factor(Facility_B_AI_02_recombined_prev$water)
+
+Facility_B_AI_02_concs <- read.csv('Facility_B_AI_02_Concs.csv')
+Facility_B_AI_02_concs$scenario <- as.factor(Facility_B_AI_02_concs$scenario)
+Facility_B_AI_02_concs$water <- as.factor(Facility_B_AI_02_concs$water)
+
+Facility_B_AI_03_recombined_prev <- read.csv('Facility_B_AI_03_Recombined_Prev.csv')
+Facility_B_AI_03_recombined_prev$scenario <- as.factor(Facility_B_AI_03_recombined_prev$scenario)
+Facility_B_AI_03_recombined_prev$water <- as.factor(Facility_B_AI_03_recombined_prev$water)
+
+Facility_B_AI_03_concs <- read.csv('Facility_B_AI_03_Concs.csv')
+Facility_B_AI_03_concs$scenario <- as.factor(Facility_B_AI_03_concs$scenario)
+Facility_B_AI_03_concs$water <- as.factor(Facility_B_AI_03_concs$water)
+
+Facility_B_AI_04_recombined_prev <- read.csv('Facility_B_AI_04_Recombined_Prev.csv')
+Facility_B_AI_04_recombined_prev$scenario <- as.factor(Facility_B_AI_04_recombined_prev$scenario)
+Facility_B_AI_04_recombined_prev$water <- as.factor(Facility_B_AI_04_recombined_prev$water)
+
+Facility_B_AI_04_concs <- read.csv('Facility_B_AI_04_Concs.csv')
+Facility_B_AI_04_concs$scenario <- as.factor(Facility_B_AI_04_concs$scenario)
+Facility_B_AI_04_concs$water <- as.factor(Facility_B_AI_04_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_AI_01_wet_prev <- Facility_B_AI_01_recombined_prev[which(Facility_B_AI_01_recombined_prev$water=="Wet"),]
+Facility_B_AI_01_wet_prev$ID <- as.factor(3)
+Facility_B_AI_01_dry_prev <- Facility_B_AI_01_recombined_prev[which(Facility_B_AI_01_recombined_prev$water=="Dry"),]
+Facility_B_AI_01_dry_prev$ID <- as.factor(4)
+Facility_B_AI_02_wet_prev <- Facility_B_AI_02_recombined_prev[which(Facility_B_AI_02_recombined_prev$water=="Wet"),]
+Facility_B_AI_02_wet_prev$ID <- as.factor(5)
+Facility_B_AI_02_dry_prev <- Facility_B_AI_02_recombined_prev[which(Facility_B_AI_02_recombined_prev$water=="Dry"),]
+Facility_B_AI_02_dry_prev$ID <- as.factor(6)
+Facility_B_AI_03_wet_prev <- Facility_B_AI_03_recombined_prev[which(Facility_B_AI_03_recombined_prev$water=="Wet"),]
+Facility_B_AI_03_wet_prev$ID <- as.factor(7)
+Facility_B_AI_03_dry_prev <- Facility_B_AI_03_recombined_prev[which(Facility_B_AI_03_recombined_prev$water=="Dry"),]
+Facility_B_AI_03_dry_prev$ID <- as.factor(8)
+Facility_B_AI_04_wet_prev <- Facility_B_AI_04_recombined_prev[which(Facility_B_AI_04_recombined_prev$water=="Wet"),]
+Facility_B_AI_04_wet_prev$ID <- as.factor(9)
+Facility_B_AI_04_dry_prev <- Facility_B_AI_04_recombined_prev[which(Facility_B_AI_04_recombined_prev$water=="Dry"),]
+Facility_B_AI_04_dry_prev$ID <- as.factor(10)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_AI_01_wet_concs <- Facility_B_AI_01_concs[which(Facility_B_AI_01_concs$water=="Wet"),]
+Facility_B_AI_01_wet_concs$ID <- as.factor(3)
+Facility_B_AI_01_dry_concs <- Facility_B_AI_01_concs[which(Facility_B_AI_01_concs$water=="Dry"),]
+Facility_B_AI_01_dry_concs$ID <- as.factor(4)
+Facility_B_AI_02_wet_concs <- Facility_B_AI_02_concs[which(Facility_B_AI_02_concs$water=="Wet"),]
+Facility_B_AI_02_wet_concs$ID <- as.factor(5)
+Facility_B_AI_02_dry_concs <- Facility_B_AI_02_concs[which(Facility_B_AI_02_concs$water=="Dry"),]
+Facility_B_AI_02_dry_concs$ID <- as.factor(6)
+Facility_B_AI_03_wet_concs <- Facility_B_AI_03_concs[which(Facility_B_AI_03_concs$water=="Wet"),]
+Facility_B_AI_03_wet_concs$ID <- as.factor(7)
+Facility_B_AI_03_dry_concs <- Facility_B_AI_03_concs[which(Facility_B_AI_03_concs$water=="Dry"),]
+Facility_B_AI_03_dry_concs$ID <- as.factor(8)
+Facility_B_AI_04_wet_concs <- Facility_B_AI_04_concs[which(Facility_B_AI_04_concs$water=="Wet"),]
+Facility_B_AI_04_wet_concs$ID <- as.factor(9)
+Facility_B_AI_04_dry_concs <- Facility_B_AI_04_concs[which(Facility_B_AI_04_concs$water=="Dry"),]
+Facility_B_AI_04_dry_concs$ID <- as.factor(10)
+
+x_axis_text_size <- 10
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_AI_01_wet_prev,Facility_A_AI_01_dry_prev,Facility_A_AI_02C1_wet_prev,Facility_A_AI_02C1_dry_prev,Facility_A_AI_02C2_wet_prev,Facility_A_AI_02C2_dry_prev,Facility_A_AI_03C1_wet_prev,Facility_A_AI_03C1_dry_prev,Facility_A_AI_03C2_wet_prev,Facility_A_AI_03C2_dry_prev,Facility_A_AI_04_wet_prev,Facility_A_AI_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","11","13","2","4","6","8","10","12","14"),
+    labels= c("Baseline", "AI_01", "AI_02C1", "AI_02C2", "AI_03C1", "AI_03C2", "AI_04", "Baseline", "AI_01", "AI_02C1", "AI_02C2", "AI_03C1", "AI_03C2", "AI_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_AI_01_wet_prev,Facility_B_AI_01_dry_prev,Facility_B_AI_02_wet_prev,Facility_B_AI_02_dry_prev,Facility_B_AI_03_wet_prev,Facility_B_AI_03_dry_prev,Facility_B_AI_04_wet_prev,Facility_B_AI_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "AI_01", "AI_02", "AI_03", "AI_04", "Baseline", "AI_01", "AI_02", "AI_03", "AI_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_AI_01_wet_concs,Facility_A_AI_01_dry_concs,Facility_A_AI_02C1_wet_concs,Facility_A_AI_02C1_dry_concs,Facility_A_AI_02C2_wet_concs,Facility_A_AI_02C2_dry_concs,Facility_A_AI_03C1_wet_concs,Facility_A_AI_03C1_dry_concs,Facility_A_AI_03C2_wet_concs,Facility_A_AI_03C2_dry_concs,Facility_A_AI_04_wet_concs,Facility_A_AI_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","11","13","2","4","6","8","10","12","14"),
+    labels= c("Baseline", "AI_01", "AI_02C1", "AI_02C2", "AI_03C1", "AI_03C2", "AI_04", "Baseline", "AI_01", "AI_02C1", "AI_02C2", "AI_03C1", "AI_03C2", "AI_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_AI_01_wet_concs,Facility_B_AI_01_dry_concs,Facility_B_AI_02_wet_concs,Facility_B_AI_02_dry_concs,Facility_B_AI_03_wet_concs,Facility_B_AI_03_dry_concs,Facility_B_AI_04_wet_concs,Facility_B_AI_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "AI_01", "AI_02", "AI_03", "AI_04", "Baseline", "AI_01", "AI_02", "AI_03", "AI_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_9 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_9.tiff", plot = figure_9, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_9
+```
+
+```{r Figure 10}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_CI_01_recombined_prev <- read.csv('Facility_A_CI_01_Recombined_Prev.csv')
+Facility_A_CI_01_recombined_prev$scenario <- as.factor(Facility_A_CI_01_recombined_prev$scenario)
+Facility_A_CI_01_recombined_prev$water <- as.factor(Facility_A_CI_01_recombined_prev$water)
+
+Facility_A_CI_01_concs <- read.csv('Facility_A_CI_01_Concs.csv')
+Facility_A_CI_01_concs$scenario <- as.factor(Facility_A_CI_01_concs$scenario)
+Facility_A_CI_01_concs$water <- as.factor(Facility_A_CI_01_concs$water)
+
+Facility_A_CI_02_recombined_prev <- read.csv('Facility_A_CI_02_Recombined_Prev.csv')
+Facility_A_CI_02_recombined_prev$scenario <- as.factor(Facility_A_CI_02_recombined_prev$scenario)
+Facility_A_CI_02_recombined_prev$water <- as.factor(Facility_A_CI_02_recombined_prev$water)
+
+Facility_A_CI_02_concs <- read.csv('Facility_A_CI_02_Concs.csv')
+Facility_A_CI_02_concs$scenario <- as.factor(Facility_A_CI_02_concs$scenario)
+Facility_A_CI_02_concs$water <- as.factor(Facility_A_CI_02_concs$water)
+
+Facility_A_CI_03_recombined_prev <- read.csv('Facility_A_CI_03_Recombined_Prev.csv')
+Facility_A_CI_03_recombined_prev$scenario <- as.factor(Facility_A_CI_03_recombined_prev$scenario)
+Facility_A_CI_03_recombined_prev$water <- as.factor(Facility_A_CI_03_recombined_prev$water)
+
+Facility_A_CI_03_concs <- read.csv('Facility_A_CI_03_Concs.csv')
+Facility_A_CI_03_concs$scenario <- as.factor(Facility_A_CI_03_concs$scenario)
+Facility_A_CI_03_concs$water <- as.factor(Facility_A_CI_03_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_CI_01_wet_prev <- Facility_A_CI_01_recombined_prev[which(Facility_A_CI_01_recombined_prev$water=="Wet"),]
+Facility_A_CI_01_wet_prev$ID <- as.factor(3)
+Facility_A_CI_01_dry_prev <- Facility_A_CI_01_recombined_prev[which(Facility_A_CI_01_recombined_prev$water=="Dry"),]
+Facility_A_CI_01_dry_prev$ID <- as.factor(4)
+Facility_A_CI_02_wet_prev <- Facility_A_CI_02_recombined_prev[which(Facility_A_CI_02_recombined_prev$water=="Wet"),]
+Facility_A_CI_02_wet_prev$ID <- as.factor(5)
+Facility_A_CI_02_dry_prev <- Facility_A_CI_02_recombined_prev[which(Facility_A_CI_02_recombined_prev$water=="Dry"),]
+Facility_A_CI_02_dry_prev$ID <- as.factor(6)
+Facility_A_CI_03_wet_prev <- Facility_A_CI_03_recombined_prev[which(Facility_A_CI_03_recombined_prev$water=="Wet"),]
+Facility_A_CI_03_wet_prev$ID <- as.factor(7)
+Facility_A_CI_03_dry_prev <- Facility_A_CI_03_recombined_prev[which(Facility_A_CI_03_recombined_prev$water=="Dry"),]
+Facility_A_CI_03_dry_prev$ID <- as.factor(8)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_CI_01_wet_concs <- Facility_A_CI_01_concs[which(Facility_A_CI_01_concs$water=="Wet"),]
+Facility_A_CI_01_wet_concs$ID <- as.factor(3)
+Facility_A_CI_01_dry_concs <- Facility_A_CI_01_concs[which(Facility_A_CI_01_concs$water=="Dry"),]
+Facility_A_CI_01_dry_concs$ID <- as.factor(4)
+Facility_A_CI_02_wet_concs <- Facility_A_CI_02_concs[which(Facility_A_CI_02_concs$water=="Wet"),]
+Facility_A_CI_02_wet_concs$ID <- as.factor(5)
+Facility_A_CI_02_dry_concs <- Facility_A_CI_02_concs[which(Facility_A_CI_02_concs$water=="Dry"),]
+Facility_A_CI_02_dry_concs$ID <- as.factor(6)
+Facility_A_CI_03_wet_concs <- Facility_A_CI_03_concs[which(Facility_A_CI_03_concs$water=="Wet"),]
+Facility_A_CI_03_wet_concs$ID <- as.factor(7)
+Facility_A_CI_03_dry_concs <- Facility_A_CI_03_concs[which(Facility_A_CI_03_concs$water=="Dry"),]
+Facility_A_CI_03_dry_concs$ID <- as.factor(8)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_CI_01_recombined_prev <- read.csv('Facility_B_CI_01_Recombined_Prev.csv')
+Facility_B_CI_01_recombined_prev$scenario <- as.factor(Facility_B_CI_01_recombined_prev$scenario)
+Facility_B_CI_01_recombined_prev$water <- as.factor(Facility_B_CI_01_recombined_prev$water)
+
+Facility_B_CI_01_concs <- read.csv('Facility_B_CI_01_Concs.csv')
+Facility_B_CI_01_concs$scenario <- as.factor(Facility_B_CI_01_concs$scenario)
+Facility_B_CI_01_concs$water <- as.factor(Facility_B_CI_01_concs$water)
+
+Facility_B_CI_02_recombined_prev <- read.csv('Facility_B_CI_02_Recombined_Prev.csv')
+Facility_B_CI_02_recombined_prev$scenario <- as.factor(Facility_B_CI_02_recombined_prev$scenario)
+Facility_B_CI_02_recombined_prev$water <- as.factor(Facility_B_CI_02_recombined_prev$water)
+
+Facility_B_CI_02_concs <- read.csv('Facility_B_CI_02_Concs.csv')
+Facility_B_CI_02_concs$scenario <- as.factor(Facility_B_CI_02_concs$scenario)
+Facility_B_CI_02_concs$water <- as.factor(Facility_B_CI_02_concs$water)
+
+Facility_B_CI_03_recombined_prev <- read.csv('Facility_B_CI_03_Recombined_Prev.csv')
+Facility_B_CI_03_recombined_prev$scenario <- as.factor(Facility_B_CI_03_recombined_prev$scenario)
+Facility_B_CI_03_recombined_prev$water <- as.factor(Facility_B_CI_03_recombined_prev$water)
+
+Facility_B_CI_03_concs <- read.csv('Facility_B_CI_03_Concs.csv')
+Facility_B_CI_03_concs$scenario <- as.factor(Facility_B_CI_03_concs$scenario)
+Facility_B_CI_03_concs$water <- as.factor(Facility_B_CI_03_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_CI_01_wet_prev <- Facility_B_CI_01_recombined_prev[which(Facility_B_CI_01_recombined_prev$water=="Wet"),]
+Facility_B_CI_01_wet_prev$ID <- as.factor(3)
+Facility_B_CI_01_dry_prev <- Facility_B_CI_01_recombined_prev[which(Facility_B_CI_01_recombined_prev$water=="Dry"),]
+Facility_B_CI_01_dry_prev$ID <- as.factor(4)
+Facility_B_CI_02_wet_prev <- Facility_B_CI_02_recombined_prev[which(Facility_B_CI_02_recombined_prev$water=="Wet"),]
+Facility_B_CI_02_wet_prev$ID <- as.factor(5)
+Facility_B_CI_02_dry_prev <- Facility_B_CI_02_recombined_prev[which(Facility_B_CI_02_recombined_prev$water=="Dry"),]
+Facility_B_CI_02_dry_prev$ID <- as.factor(6)
+Facility_B_CI_03_wet_prev <- Facility_B_CI_03_recombined_prev[which(Facility_B_CI_03_recombined_prev$water=="Wet"),]
+Facility_B_CI_03_wet_prev$ID <- as.factor(7)
+Facility_B_CI_03_dry_prev <- Facility_B_CI_03_recombined_prev[which(Facility_B_CI_03_recombined_prev$water=="Dry"),]
+Facility_B_CI_03_dry_prev$ID <- as.factor(8)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_CI_01_wet_concs <- Facility_B_CI_01_concs[which(Facility_B_CI_01_concs$water=="Wet"),]
+Facility_B_CI_01_wet_concs$ID <- as.factor(3)
+Facility_B_CI_01_dry_concs <- Facility_B_CI_01_concs[which(Facility_B_CI_01_concs$water=="Dry"),]
+Facility_B_CI_01_dry_concs$ID <- as.factor(4)
+Facility_B_CI_02_wet_concs <- Facility_B_CI_02_concs[which(Facility_B_CI_02_concs$water=="Wet"),]
+Facility_B_CI_02_wet_concs$ID <- as.factor(5)
+Facility_B_CI_02_dry_concs <- Facility_B_CI_02_concs[which(Facility_B_CI_02_concs$water=="Dry"),]
+Facility_B_CI_02_dry_concs$ID <- as.factor(6)
+Facility_B_CI_03_wet_concs <- Facility_B_CI_03_concs[which(Facility_B_CI_03_concs$water=="Wet"),]
+Facility_B_CI_03_wet_concs$ID <- as.factor(7)
+Facility_B_CI_03_dry_concs <- Facility_B_CI_03_concs[which(Facility_B_CI_03_concs$water=="Dry"),]
+Facility_B_CI_03_dry_concs$ID <- as.factor(8)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_CI_01_wet_prev,Facility_A_CI_01_dry_prev,Facility_A_CI_02_wet_prev,Facility_A_CI_02_dry_prev,Facility_A_CI_03_wet_prev,Facility_A_CI_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "CI_01", "CI_02", "CI_03","Baseline", "CI_01", "CI_02", "CI_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_CI_01_wet_prev,Facility_B_CI_01_dry_prev,Facility_B_CI_02_wet_prev,Facility_B_CI_02_dry_prev,Facility_B_CI_03_wet_prev,Facility_B_CI_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "CI_01", "CI_02", "CI_03","Baseline", "CI_01", "CI_02", "CI_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_CI_01_wet_concs,Facility_A_CI_01_dry_concs,Facility_A_CI_02_wet_concs,Facility_A_CI_02_dry_concs,Facility_A_CI_03_wet_concs,Facility_A_CI_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "CI_01", "CI_02", "CI_03","Baseline", "CI_01", "CI_02", "CI_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_CI_01_wet_concs,Facility_B_CI_01_dry_concs,Facility_B_CI_02_wet_concs,Facility_B_CI_02_dry_concs,Facility_B_CI_03_wet_concs,Facility_B_CI_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "CI_01", "CI_02", "CI_03","Baseline", "CI_01", "CI_02", "CI_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_10 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_10.tiff", plot = figure_10, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_10
+```
+
+```{r Figure S2}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_PR_01_recombined_prev <- read.csv('Facility_A_PR_01_Recombined_Prev.csv')
+Facility_A_PR_01_recombined_prev$scenario <- as.factor(Facility_A_PR_01_recombined_prev$scenario)
+Facility_A_PR_01_recombined_prev$water <- as.factor(Facility_A_PR_01_recombined_prev$water)
+
+Facility_A_PR_01_concs <- read.csv('Facility_A_PR_01_Concs.csv')
+Facility_A_PR_01_concs$scenario <- as.factor(Facility_A_PR_01_concs$scenario)
+Facility_A_PR_01_concs$water <- as.factor(Facility_A_PR_01_concs$water)
+
+Facility_A_PR_02_recombined_prev <- read.csv('Facility_A_PR_02_Recombined_Prev.csv')
+Facility_A_PR_02_recombined_prev$scenario <- as.factor(Facility_A_PR_02_recombined_prev$scenario)
+Facility_A_PR_02_recombined_prev$water <- as.factor(Facility_A_PR_02_recombined_prev$water)
+
+Facility_A_PR_02_concs <- read.csv('Facility_A_PR_02_Concs.csv')
+Facility_A_PR_02_concs$scenario <- as.factor(Facility_A_PR_02_concs$scenario)
+Facility_A_PR_02_concs$water <- as.factor(Facility_A_PR_02_concs$water)
+
+Facility_A_PR_03_recombined_prev <- read.csv('Facility_A_PR_03_Recombined_Prev.csv')
+Facility_A_PR_03_recombined_prev$scenario <- as.factor(Facility_A_PR_03_recombined_prev$scenario)
+Facility_A_PR_03_recombined_prev$water <- as.factor(Facility_A_PR_03_recombined_prev$water)
+
+Facility_A_PR_03_concs <- read.csv('Facility_A_PR_03_Concs.csv')
+Facility_A_PR_03_concs$scenario <- as.factor(Facility_A_PR_03_concs$scenario)
+Facility_A_PR_03_concs$water <- as.factor(Facility_A_PR_03_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_PR_01_wet_prev <- Facility_A_PR_01_recombined_prev[which(Facility_A_PR_01_recombined_prev$water=="Wet"),]
+Facility_A_PR_01_wet_prev$ID <- as.factor(3)
+Facility_A_PR_01_dry_prev <- Facility_A_PR_01_recombined_prev[which(Facility_A_PR_01_recombined_prev$water=="Dry"),]
+Facility_A_PR_01_dry_prev$ID <- as.factor(4)
+Facility_A_PR_02_wet_prev <- Facility_A_PR_02_recombined_prev[which(Facility_A_PR_02_recombined_prev$water=="Wet"),]
+Facility_A_PR_02_wet_prev$ID <- as.factor(5)
+Facility_A_PR_02_dry_prev <- Facility_A_PR_02_recombined_prev[which(Facility_A_PR_02_recombined_prev$water=="Dry"),]
+Facility_A_PR_02_dry_prev$ID <- as.factor(6)
+Facility_A_PR_03_wet_prev <- Facility_A_PR_03_recombined_prev[which(Facility_A_PR_03_recombined_prev$water=="Wet"),]
+Facility_A_PR_03_wet_prev$ID <- as.factor(7)
+Facility_A_PR_03_dry_prev <- Facility_A_PR_03_recombined_prev[which(Facility_A_PR_03_recombined_prev$water=="Dry"),]
+Facility_A_PR_03_dry_prev$ID <- as.factor(8)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_PR_01_wet_concs <- Facility_A_PR_01_concs[which(Facility_A_PR_01_concs$water=="Wet"),]
+Facility_A_PR_01_wet_concs$ID <- as.factor(3)
+Facility_A_PR_01_dry_concs <- Facility_A_PR_01_concs[which(Facility_A_PR_01_concs$water=="Dry"),]
+Facility_A_PR_01_dry_concs$ID <- as.factor(4)
+Facility_A_PR_02_wet_concs <- Facility_A_PR_02_concs[which(Facility_A_PR_02_concs$water=="Wet"),]
+Facility_A_PR_02_wet_concs$ID <- as.factor(5)
+Facility_A_PR_02_dry_concs <- Facility_A_PR_02_concs[which(Facility_A_PR_02_concs$water=="Dry"),]
+Facility_A_PR_02_dry_concs$ID <- as.factor(6)
+Facility_A_PR_03_wet_concs <- Facility_A_PR_03_concs[which(Facility_A_PR_03_concs$water=="Wet"),]
+Facility_A_PR_03_wet_concs$ID <- as.factor(7)
+Facility_A_PR_03_dry_concs <- Facility_A_PR_03_concs[which(Facility_A_PR_03_concs$water=="Dry"),]
+Facility_A_PR_03_dry_concs$ID <- as.factor(8)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_PR_01_recombined_prev <- read.csv('Facility_B_PR_01_Recombined_Prev.csv')
+Facility_B_PR_01_recombined_prev$scenario <- as.factor(Facility_B_PR_01_recombined_prev$scenario)
+Facility_B_PR_01_recombined_prev$water <- as.factor(Facility_B_PR_01_recombined_prev$water)
+
+Facility_B_PR_01_concs <- read.csv('Facility_B_PR_01_Concs.csv')
+Facility_B_PR_01_concs$scenario <- as.factor(Facility_B_PR_01_concs$scenario)
+Facility_B_PR_01_concs$water <- as.factor(Facility_B_PR_01_concs$water)
+
+Facility_B_PR_02_recombined_prev <- read.csv('Facility_B_PR_02_Recombined_Prev.csv')
+Facility_B_PR_02_recombined_prev$scenario <- as.factor(Facility_B_PR_02_recombined_prev$scenario)
+Facility_B_PR_02_recombined_prev$water <- as.factor(Facility_B_PR_02_recombined_prev$water)
+
+Facility_B_PR_02_concs <- read.csv('Facility_B_PR_02_Concs.csv')
+Facility_B_PR_02_concs$scenario <- as.factor(Facility_B_PR_02_concs$scenario)
+Facility_B_PR_02_concs$water <- as.factor(Facility_B_PR_02_concs$water)
+
+Facility_B_PR_03_recombined_prev <- read.csv('Facility_B_PR_03_Recombined_Prev.csv')
+Facility_B_PR_03_recombined_prev$scenario <- as.factor(Facility_B_PR_03_recombined_prev$scenario)
+Facility_B_PR_03_recombined_prev$water <- as.factor(Facility_B_PR_03_recombined_prev$water)
+
+Facility_B_PR_03_concs <- read.csv('Facility_B_PR_03_Concs.csv')
+Facility_B_PR_03_concs$scenario <- as.factor(Facility_B_PR_03_concs$scenario)
+Facility_B_PR_03_concs$water <- as.factor(Facility_B_PR_03_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_PR_01_wet_prev <- Facility_B_PR_01_recombined_prev[which(Facility_B_PR_01_recombined_prev$water=="Wet"),]
+Facility_B_PR_01_wet_prev$ID <- as.factor(3)
+Facility_B_PR_01_dry_prev <- Facility_B_PR_01_recombined_prev[which(Facility_B_PR_01_recombined_prev$water=="Dry"),]
+Facility_B_PR_01_dry_prev$ID <- as.factor(4)
+Facility_B_PR_02_wet_prev <- Facility_B_PR_02_recombined_prev[which(Facility_B_PR_02_recombined_prev$water=="Wet"),]
+Facility_B_PR_02_wet_prev$ID <- as.factor(5)
+Facility_B_PR_02_dry_prev <- Facility_B_PR_02_recombined_prev[which(Facility_B_PR_02_recombined_prev$water=="Dry"),]
+Facility_B_PR_02_dry_prev$ID <- as.factor(6)
+Facility_B_PR_03_wet_prev <- Facility_B_PR_03_recombined_prev[which(Facility_B_PR_03_recombined_prev$water=="Wet"),]
+Facility_B_PR_03_wet_prev$ID <- as.factor(7)
+Facility_B_PR_03_dry_prev <- Facility_B_PR_03_recombined_prev[which(Facility_B_PR_03_recombined_prev$water=="Dry"),]
+Facility_B_PR_03_dry_prev$ID <- as.factor(8)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_PR_01_wet_concs <- Facility_B_PR_01_concs[which(Facility_B_PR_01_concs$water=="Wet"),]
+Facility_B_PR_01_wet_concs$ID <- as.factor(3)
+Facility_B_PR_01_dry_concs <- Facility_B_PR_01_concs[which(Facility_B_PR_01_concs$water=="Dry"),]
+Facility_B_PR_01_dry_concs$ID <- as.factor(4)
+Facility_B_PR_02_wet_concs <- Facility_B_PR_02_concs[which(Facility_B_PR_02_concs$water=="Wet"),]
+Facility_B_PR_02_wet_concs$ID <- as.factor(5)
+Facility_B_PR_02_dry_concs <- Facility_B_PR_02_concs[which(Facility_B_PR_02_concs$water=="Dry"),]
+Facility_B_PR_02_dry_concs$ID <- as.factor(6)
+Facility_B_PR_03_wet_concs <- Facility_B_PR_03_concs[which(Facility_B_PR_03_concs$water=="Wet"),]
+Facility_B_PR_03_wet_concs$ID <- as.factor(7)
+Facility_B_PR_03_dry_concs <- Facility_B_PR_03_concs[which(Facility_B_PR_03_concs$water=="Dry"),]
+Facility_B_PR_03_dry_concs$ID <- as.factor(8)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_PR_01_wet_prev,Facility_A_PR_01_dry_prev,Facility_A_PR_02_wet_prev,Facility_A_PR_02_dry_prev,Facility_A_PR_03_wet_prev,Facility_A_PR_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "PR_01", "PR_02", "PR_03","Baseline", "PR_01", "PR_02", "PR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_PR_01_wet_prev,Facility_B_PR_01_dry_prev,Facility_B_PR_02_wet_prev,Facility_B_PR_02_dry_prev,Facility_B_PR_03_wet_prev,Facility_B_PR_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "PR_01", "PR_02", "PR_03","Baseline", "PR_01", "PR_02", "PR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_PR_01_wet_concs,Facility_A_PR_01_dry_concs,Facility_A_PR_02_wet_concs,Facility_A_PR_02_dry_concs,Facility_A_PR_03_wet_concs,Facility_A_PR_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "PR_01", "PR_02", "PR_03","Baseline", "PR_01", "PR_02", "PR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_PR_01_wet_concs,Facility_B_PR_01_dry_concs,Facility_B_PR_02_wet_concs,Facility_B_PR_02_dry_concs,Facility_B_PR_03_wet_concs,Facility_B_PR_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "PR_01", "PR_02", "PR_03","Baseline", "PR_01", "PR_02", "PR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S2 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_S2.tiff", plot = figure_S2, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S2
+```
+
+```{r Figure S3}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_LR_01_recombined_prev <- read.csv('Facility_A_LR_01_Recombined_Prev.csv')
+Facility_A_LR_01_recombined_prev$scenario <- as.factor(Facility_A_LR_01_recombined_prev$scenario)
+Facility_A_LR_01_recombined_prev$water <- as.factor(Facility_A_LR_01_recombined_prev$water)
+
+Facility_A_LR_01_concs <- read.csv('Facility_A_LR_01_Concs.csv')
+Facility_A_LR_01_concs$scenario <- as.factor(Facility_A_LR_01_concs$scenario)
+Facility_A_LR_01_concs$water <- as.factor(Facility_A_LR_01_concs$water)
+
+Facility_A_LR_02_recombined_prev <- read.csv('Facility_A_LR_02_Recombined_Prev.csv')
+Facility_A_LR_02_recombined_prev$scenario <- as.factor(Facility_A_LR_02_recombined_prev$scenario)
+Facility_A_LR_02_recombined_prev$water <- as.factor(Facility_A_LR_02_recombined_prev$water)
+
+Facility_A_LR_02_concs <- read.csv('Facility_A_LR_02_Concs.csv')
+Facility_A_LR_02_concs$scenario <- as.factor(Facility_A_LR_02_concs$scenario)
+Facility_A_LR_02_concs$water <- as.factor(Facility_A_LR_02_concs$water)
+
+Facility_A_LR_03_recombined_prev <- read.csv('Facility_A_LR_03_Recombined_Prev.csv')
+Facility_A_LR_03_recombined_prev$scenario <- as.factor(Facility_A_LR_03_recombined_prev$scenario)
+Facility_A_LR_03_recombined_prev$water <- as.factor(Facility_A_LR_03_recombined_prev$water)
+
+Facility_A_LR_03_concs <- read.csv('Facility_A_LR_03_Concs.csv')
+Facility_A_LR_03_concs$scenario <- as.factor(Facility_A_LR_03_concs$scenario)
+Facility_A_LR_03_concs$water <- as.factor(Facility_A_LR_03_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_LR_01_wet_prev <- Facility_A_LR_01_recombined_prev[which(Facility_A_LR_01_recombined_prev$water=="Wet"),]
+Facility_A_LR_01_wet_prev$ID <- as.factor(3)
+Facility_A_LR_01_dry_prev <- Facility_A_LR_01_recombined_prev[which(Facility_A_LR_01_recombined_prev$water=="Dry"),]
+Facility_A_LR_01_dry_prev$ID <- as.factor(4)
+Facility_A_LR_02_wet_prev <- Facility_A_LR_02_recombined_prev[which(Facility_A_LR_02_recombined_prev$water=="Wet"),]
+Facility_A_LR_02_wet_prev$ID <- as.factor(5)
+Facility_A_LR_02_dry_prev <- Facility_A_LR_02_recombined_prev[which(Facility_A_LR_02_recombined_prev$water=="Dry"),]
+Facility_A_LR_02_dry_prev$ID <- as.factor(6)
+Facility_A_LR_03_wet_prev <- Facility_A_LR_03_recombined_prev[which(Facility_A_LR_03_recombined_prev$water=="Wet"),]
+Facility_A_LR_03_wet_prev$ID <- as.factor(7)
+Facility_A_LR_03_dry_prev <- Facility_A_LR_03_recombined_prev[which(Facility_A_LR_03_recombined_prev$water=="Dry"),]
+Facility_A_LR_03_dry_prev$ID <- as.factor(8)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_LR_01_wet_concs <- Facility_A_LR_01_concs[which(Facility_A_LR_01_concs$water=="Wet"),]
+Facility_A_LR_01_wet_concs$ID <- as.factor(3)
+Facility_A_LR_01_dry_concs <- Facility_A_LR_01_concs[which(Facility_A_LR_01_concs$water=="Dry"),]
+Facility_A_LR_01_dry_concs$ID <- as.factor(4)
+Facility_A_LR_02_wet_concs <- Facility_A_LR_02_concs[which(Facility_A_LR_02_concs$water=="Wet"),]
+Facility_A_LR_02_wet_concs$ID <- as.factor(5)
+Facility_A_LR_02_dry_concs <- Facility_A_LR_02_concs[which(Facility_A_LR_02_concs$water=="Dry"),]
+Facility_A_LR_02_dry_concs$ID <- as.factor(6)
+Facility_A_LR_03_wet_concs <- Facility_A_LR_03_concs[which(Facility_A_LR_03_concs$water=="Wet"),]
+Facility_A_LR_03_wet_concs$ID <- as.factor(7)
+Facility_A_LR_03_dry_concs <- Facility_A_LR_03_concs[which(Facility_A_LR_03_concs$water=="Dry"),]
+Facility_A_LR_03_dry_concs$ID <- as.factor(8)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_LR_01_recombined_prev <- read.csv('Facility_B_LR_01_Recombined_Prev.csv')
+Facility_B_LR_01_recombined_prev$scenario <- as.factor(Facility_B_LR_01_recombined_prev$scenario)
+Facility_B_LR_01_recombined_prev$water <- as.factor(Facility_B_LR_01_recombined_prev$water)
+
+Facility_B_LR_01_concs <- read.csv('Facility_B_LR_01_Concs.csv')
+Facility_B_LR_01_concs$scenario <- as.factor(Facility_B_LR_01_concs$scenario)
+Facility_B_LR_01_concs$water <- as.factor(Facility_B_LR_01_concs$water)
+
+Facility_B_LR_02_recombined_prev <- read.csv('Facility_B_LR_02_Recombined_Prev.csv')
+Facility_B_LR_02_recombined_prev$scenario <- as.factor(Facility_B_LR_02_recombined_prev$scenario)
+Facility_B_LR_02_recombined_prev$water <- as.factor(Facility_B_LR_02_recombined_prev$water)
+
+Facility_B_LR_02_concs <- read.csv('Facility_B_LR_02_Concs.csv')
+Facility_B_LR_02_concs$scenario <- as.factor(Facility_B_LR_02_concs$scenario)
+Facility_B_LR_02_concs$water <- as.factor(Facility_B_LR_02_concs$water)
+
+Facility_B_LR_03_recombined_prev <- read.csv('Facility_B_LR_03_Recombined_Prev.csv')
+Facility_B_LR_03_recombined_prev$scenario <- as.factor(Facility_B_LR_03_recombined_prev$scenario)
+Facility_B_LR_03_recombined_prev$water <- as.factor(Facility_B_LR_03_recombined_prev$water)
+
+Facility_B_LR_03_concs <- read.csv('Facility_B_LR_03_Concs.csv')
+Facility_B_LR_03_concs$scenario <- as.factor(Facility_B_LR_03_concs$scenario)
+Facility_B_LR_03_concs$water <- as.factor(Facility_B_LR_03_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_LR_01_wet_prev <- Facility_B_LR_01_recombined_prev[which(Facility_B_LR_01_recombined_prev$water=="Wet"),]
+Facility_B_LR_01_wet_prev$ID <- as.factor(3)
+Facility_B_LR_01_dry_prev <- Facility_B_LR_01_recombined_prev[which(Facility_B_LR_01_recombined_prev$water=="Dry"),]
+Facility_B_LR_01_dry_prev$ID <- as.factor(4)
+Facility_B_LR_02_wet_prev <- Facility_B_LR_02_recombined_prev[which(Facility_B_LR_02_recombined_prev$water=="Wet"),]
+Facility_B_LR_02_wet_prev$ID <- as.factor(5)
+Facility_B_LR_02_dry_prev <- Facility_B_LR_02_recombined_prev[which(Facility_B_LR_02_recombined_prev$water=="Dry"),]
+Facility_B_LR_02_dry_prev$ID <- as.factor(6)
+Facility_B_LR_03_wet_prev <- Facility_B_LR_03_recombined_prev[which(Facility_B_LR_03_recombined_prev$water=="Wet"),]
+Facility_B_LR_03_wet_prev$ID <- as.factor(7)
+Facility_B_LR_03_dry_prev <- Facility_B_LR_03_recombined_prev[which(Facility_B_LR_03_recombined_prev$water=="Dry"),]
+Facility_B_LR_03_dry_prev$ID <- as.factor(8)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_LR_01_wet_concs <- Facility_B_LR_01_concs[which(Facility_B_LR_01_concs$water=="Wet"),]
+Facility_B_LR_01_wet_concs$ID <- as.factor(3)
+Facility_B_LR_01_dry_concs <- Facility_B_LR_01_concs[which(Facility_B_LR_01_concs$water=="Dry"),]
+Facility_B_LR_01_dry_concs$ID <- as.factor(4)
+Facility_B_LR_02_wet_concs <- Facility_B_LR_02_concs[which(Facility_B_LR_02_concs$water=="Wet"),]
+Facility_B_LR_02_wet_concs$ID <- as.factor(5)
+Facility_B_LR_02_dry_concs <- Facility_B_LR_02_concs[which(Facility_B_LR_02_concs$water=="Dry"),]
+Facility_B_LR_02_dry_concs$ID <- as.factor(6)
+Facility_B_LR_03_wet_concs <- Facility_B_LR_03_concs[which(Facility_B_LR_03_concs$water=="Wet"),]
+Facility_B_LR_03_wet_concs$ID <- as.factor(7)
+Facility_B_LR_03_dry_concs <- Facility_B_LR_03_concs[which(Facility_B_LR_03_concs$water=="Dry"),]
+Facility_B_LR_03_dry_concs$ID <- as.factor(8)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_LR_01_wet_prev,Facility_A_LR_01_dry_prev,Facility_A_LR_02_wet_prev,Facility_A_LR_02_dry_prev,Facility_A_LR_03_wet_prev,Facility_A_LR_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LR_01", "LR_02", "LR_03","Baseline", "LR_01", "LR_02", "LR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_LR_01_wet_prev,Facility_B_LR_01_dry_prev,Facility_B_LR_02_wet_prev,Facility_B_LR_02_dry_prev,Facility_B_LR_03_wet_prev,Facility_B_LR_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LR_01", "LR_02", "LR_03","Baseline", "LR_01", "LR_02", "LR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_LR_01_wet_concs,Facility_A_LR_01_dry_concs,Facility_A_LR_02_wet_concs,Facility_A_LR_02_dry_concs,Facility_A_LR_03_wet_concs,Facility_A_LR_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LR_01", "LR_02", "LR_03","Baseline", "LR_01", "LR_02", "LR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_LR_01_wet_concs,Facility_B_LR_01_dry_concs,Facility_B_LR_02_wet_concs,Facility_B_LR_02_dry_concs,Facility_B_LR_03_wet_concs,Facility_B_LR_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LR_01", "LR_02", "LR_03","Baseline", "LR_01", "LR_02", "LR_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S3 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_S3.tiff", plot = figure_S3, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S3
+```
+
+```{r Figure S4}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_PZ_01_recombined_prev <- read.csv('Facility_A_PZ_01_Recombined_Prev.csv')
+Facility_A_PZ_01_recombined_prev$scenario <- as.factor(Facility_A_PZ_01_recombined_prev$scenario)
+Facility_A_PZ_01_recombined_prev$water <- as.factor(Facility_A_PZ_01_recombined_prev$water)
+
+Facility_A_PZ_01_concs <- read.csv('Facility_A_PZ_01_Concs.csv')
+Facility_A_PZ_01_concs$scenario <- as.factor(Facility_A_PZ_01_concs$scenario)
+Facility_A_PZ_01_concs$water <- as.factor(Facility_A_PZ_01_concs$water)
+
+Facility_A_PZ_02_recombined_prev <- read.csv('Facility_A_PZ_02_Recombined_Prev.csv')
+Facility_A_PZ_02_recombined_prev$scenario <- as.factor(Facility_A_PZ_02_recombined_prev$scenario)
+Facility_A_PZ_02_recombined_prev$water <- as.factor(Facility_A_PZ_02_recombined_prev$water)
+
+Facility_A_PZ_02_concs <- read.csv('Facility_A_PZ_02_Concs.csv')
+Facility_A_PZ_02_concs$scenario <- as.factor(Facility_A_PZ_02_concs$scenario)
+Facility_A_PZ_02_concs$water <- as.factor(Facility_A_PZ_02_concs$water)
+
+Facility_A_PZ_03_recombined_prev <- read.csv('Facility_A_PZ_03_Recombined_Prev.csv')
+Facility_A_PZ_03_recombined_prev$scenario <- as.factor(Facility_A_PZ_03_recombined_prev$scenario)
+Facility_A_PZ_03_recombined_prev$water <- as.factor(Facility_A_PZ_03_recombined_prev$water)
+
+Facility_A_PZ_03_concs <- read.csv('Facility_A_PZ_03_Concs.csv')
+Facility_A_PZ_03_concs$scenario <- as.factor(Facility_A_PZ_03_concs$scenario)
+Facility_A_PZ_03_concs$water <- as.factor(Facility_A_PZ_03_concs$water)
+
+Facility_A_PZ_04_recombined_prev <- read.csv('Facility_A_PZ_04_Recombined_Prev.csv')
+Facility_A_PZ_04_recombined_prev$scenario <- as.factor(Facility_A_PZ_04_recombined_prev$scenario)
+Facility_A_PZ_04_recombined_prev$water <- as.factor(Facility_A_PZ_04_recombined_prev$water)
+
+Facility_A_PZ_04_concs <- read.csv('Facility_A_PZ_04_Concs.csv')
+Facility_A_PZ_04_concs$scenario <- as.factor(Facility_A_PZ_04_concs$scenario)
+Facility_A_PZ_04_concs$water <- as.factor(Facility_A_PZ_04_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_PZ_01_wet_prev <- Facility_A_PZ_01_recombined_prev[which(Facility_A_PZ_01_recombined_prev$water=="Wet"),]
+Facility_A_PZ_01_wet_prev$ID <- as.factor(3)
+Facility_A_PZ_01_dry_prev <- Facility_A_PZ_01_recombined_prev[which(Facility_A_PZ_01_recombined_prev$water=="Dry"),]
+Facility_A_PZ_01_dry_prev$ID <- as.factor(4)
+Facility_A_PZ_02_wet_prev <- Facility_A_PZ_02_recombined_prev[which(Facility_A_PZ_02_recombined_prev$water=="Wet"),]
+Facility_A_PZ_02_wet_prev$ID <- as.factor(5)
+Facility_A_PZ_02_dry_prev <- Facility_A_PZ_02_recombined_prev[which(Facility_A_PZ_02_recombined_prev$water=="Dry"),]
+Facility_A_PZ_02_dry_prev$ID <- as.factor(6)
+Facility_A_PZ_03_wet_prev <- Facility_A_PZ_03_recombined_prev[which(Facility_A_PZ_03_recombined_prev$water=="Wet"),]
+Facility_A_PZ_03_wet_prev$ID <- as.factor(7)
+Facility_A_PZ_03_dry_prev <- Facility_A_PZ_03_recombined_prev[which(Facility_A_PZ_03_recombined_prev$water=="Dry"),]
+Facility_A_PZ_03_dry_prev$ID <- as.factor(8)
+Facility_A_PZ_04_wet_prev <- Facility_A_PZ_04_recombined_prev[which(Facility_A_PZ_04_recombined_prev$water=="Wet"),]
+Facility_A_PZ_04_wet_prev$ID <- as.factor(9)
+Facility_A_PZ_04_dry_prev <- Facility_A_PZ_04_recombined_prev[which(Facility_A_PZ_04_recombined_prev$water=="Dry"),]
+Facility_A_PZ_04_dry_prev$ID <- as.factor(10)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_PZ_01_wet_concs <- Facility_A_PZ_01_concs[which(Facility_A_PZ_01_concs$water=="Wet"),]
+Facility_A_PZ_01_wet_concs$ID <- as.factor(3)
+Facility_A_PZ_01_dry_concs <- Facility_A_PZ_01_concs[which(Facility_A_PZ_01_concs$water=="Dry"),]
+Facility_A_PZ_01_dry_concs$ID <- as.factor(4)
+Facility_A_PZ_02_wet_concs <- Facility_A_PZ_02_concs[which(Facility_A_PZ_02_concs$water=="Wet"),]
+Facility_A_PZ_02_wet_concs$ID <- as.factor(5)
+Facility_A_PZ_02_dry_concs <- Facility_A_PZ_02_concs[which(Facility_A_PZ_02_concs$water=="Dry"),]
+Facility_A_PZ_02_dry_concs$ID <- as.factor(6)
+Facility_A_PZ_03_wet_concs <- Facility_A_PZ_03_concs[which(Facility_A_PZ_03_concs$water=="Wet"),]
+Facility_A_PZ_03_wet_concs$ID <- as.factor(7)
+Facility_A_PZ_03_dry_concs <- Facility_A_PZ_03_concs[which(Facility_A_PZ_03_concs$water=="Dry"),]
+Facility_A_PZ_03_dry_concs$ID <- as.factor(8)
+Facility_A_PZ_04_wet_concs <- Facility_A_PZ_04_concs[which(Facility_A_PZ_04_concs$water=="Wet"),]
+Facility_A_PZ_04_wet_concs$ID <- as.factor(9)
+Facility_A_PZ_04_dry_concs <- Facility_A_PZ_04_concs[which(Facility_A_PZ_04_concs$water=="Dry"),]
+Facility_A_PZ_04_dry_concs$ID <- as.factor(10)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_PZ_01_recombined_prev <- read.csv('Facility_B_PZ_01_Recombined_Prev.csv')
+Facility_B_PZ_01_recombined_prev$scenario <- as.factor(Facility_B_PZ_01_recombined_prev$scenario)
+Facility_B_PZ_01_recombined_prev$water <- as.factor(Facility_B_PZ_01_recombined_prev$water)
+
+Facility_B_PZ_01_concs <- read.csv('Facility_B_PZ_01_Concs.csv')
+Facility_B_PZ_01_concs$scenario <- as.factor(Facility_B_PZ_01_concs$scenario)
+Facility_B_PZ_01_concs$water <- as.factor(Facility_B_PZ_01_concs$water)
+
+Facility_B_PZ_02_recombined_prev <- read.csv('Facility_B_PZ_02_Recombined_Prev.csv')
+Facility_B_PZ_02_recombined_prev$scenario <- as.factor(Facility_B_PZ_02_recombined_prev$scenario)
+Facility_B_PZ_02_recombined_prev$water <- as.factor(Facility_B_PZ_02_recombined_prev$water)
+
+Facility_B_PZ_02_concs <- read.csv('Facility_B_PZ_02_Concs.csv')
+Facility_B_PZ_02_concs$scenario <- as.factor(Facility_B_PZ_02_concs$scenario)
+Facility_B_PZ_02_concs$water <- as.factor(Facility_B_PZ_02_concs$water)
+
+Facility_B_PZ_03_recombined_prev <- read.csv('Facility_B_PZ_03_Recombined_Prev.csv')
+Facility_B_PZ_03_recombined_prev$scenario <- as.factor(Facility_B_PZ_03_recombined_prev$scenario)
+Facility_B_PZ_03_recombined_prev$water <- as.factor(Facility_B_PZ_03_recombined_prev$water)
+
+Facility_B_PZ_03_concs <- read.csv('Facility_B_PZ_03_Concs.csv')
+Facility_B_PZ_03_concs$scenario <- as.factor(Facility_B_PZ_03_concs$scenario)
+Facility_B_PZ_03_concs$water <- as.factor(Facility_B_PZ_03_concs$water)
+
+Facility_B_PZ_04_recombined_prev <- read.csv('Facility_B_PZ_04_Recombined_Prev.csv')
+Facility_B_PZ_04_recombined_prev$scenario <- as.factor(Facility_B_PZ_04_recombined_prev$scenario)
+Facility_B_PZ_04_recombined_prev$water <- as.factor(Facility_B_PZ_04_recombined_prev$water)
+
+Facility_B_PZ_04_concs <- read.csv('Facility_B_PZ_04_Concs.csv')
+Facility_B_PZ_04_concs$scenario <- as.factor(Facility_B_PZ_04_concs$scenario)
+Facility_B_PZ_04_concs$water <- as.factor(Facility_B_PZ_04_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_PZ_01_wet_prev <- Facility_B_PZ_01_recombined_prev[which(Facility_B_PZ_01_recombined_prev$water=="Wet"),]
+Facility_B_PZ_01_wet_prev$ID <- as.factor(3)
+Facility_B_PZ_01_dry_prev <- Facility_B_PZ_01_recombined_prev[which(Facility_B_PZ_01_recombined_prev$water=="Dry"),]
+Facility_B_PZ_01_dry_prev$ID <- as.factor(4)
+Facility_B_PZ_02_wet_prev <- Facility_B_PZ_02_recombined_prev[which(Facility_B_PZ_02_recombined_prev$water=="Wet"),]
+Facility_B_PZ_02_wet_prev$ID <- as.factor(5)
+Facility_B_PZ_02_dry_prev <- Facility_B_PZ_02_recombined_prev[which(Facility_B_PZ_02_recombined_prev$water=="Dry"),]
+Facility_B_PZ_02_dry_prev$ID <- as.factor(6)
+Facility_B_PZ_03_wet_prev <- Facility_B_PZ_03_recombined_prev[which(Facility_B_PZ_03_recombined_prev$water=="Wet"),]
+Facility_B_PZ_03_wet_prev$ID <- as.factor(7)
+Facility_B_PZ_03_dry_prev <- Facility_B_PZ_03_recombined_prev[which(Facility_B_PZ_03_recombined_prev$water=="Dry"),]
+Facility_B_PZ_03_dry_prev$ID <- as.factor(8)
+Facility_B_PZ_04_wet_prev <- Facility_B_PZ_04_recombined_prev[which(Facility_B_PZ_04_recombined_prev$water=="Wet"),]
+Facility_B_PZ_04_wet_prev$ID <- as.factor(9)
+Facility_B_PZ_04_dry_prev <- Facility_B_PZ_04_recombined_prev[which(Facility_B_PZ_04_recombined_prev$water=="Dry"),]
+Facility_B_PZ_04_dry_prev$ID <- as.factor(10)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_PZ_01_wet_concs <- Facility_B_PZ_01_concs[which(Facility_B_PZ_01_concs$water=="Wet"),]
+Facility_B_PZ_01_wet_concs$ID <- as.factor(3)
+Facility_B_PZ_01_dry_concs <- Facility_B_PZ_01_concs[which(Facility_B_PZ_01_concs$water=="Dry"),]
+Facility_B_PZ_01_dry_concs$ID <- as.factor(4)
+Facility_B_PZ_02_wet_concs <- Facility_B_PZ_02_concs[which(Facility_B_PZ_02_concs$water=="Wet"),]
+Facility_B_PZ_02_wet_concs$ID <- as.factor(5)
+Facility_B_PZ_02_dry_concs <- Facility_B_PZ_02_concs[which(Facility_B_PZ_02_concs$water=="Dry"),]
+Facility_B_PZ_02_dry_concs$ID <- as.factor(6)
+Facility_B_PZ_03_wet_concs <- Facility_B_PZ_03_concs[which(Facility_B_PZ_03_concs$water=="Wet"),]
+Facility_B_PZ_03_wet_concs$ID <- as.factor(7)
+Facility_B_PZ_03_dry_concs <- Facility_B_PZ_03_concs[which(Facility_B_PZ_03_concs$water=="Dry"),]
+Facility_B_PZ_03_dry_concs$ID <- as.factor(8)
+Facility_B_PZ_04_wet_concs <- Facility_B_PZ_04_concs[which(Facility_B_PZ_04_concs$water=="Wet"),]
+Facility_B_PZ_04_wet_concs$ID <- as.factor(9)
+Facility_B_PZ_04_dry_concs <- Facility_B_PZ_04_concs[which(Facility_B_PZ_04_concs$water=="Dry"),]
+Facility_B_PZ_04_dry_concs$ID <- as.factor(10)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_PZ_01_wet_prev,Facility_A_PZ_01_dry_prev,Facility_A_PZ_02_wet_prev,Facility_A_PZ_02_dry_prev,Facility_A_PZ_03_wet_prev,Facility_A_PZ_03_dry_prev,Facility_A_PZ_04_wet_prev,Facility_A_PZ_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04","Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_PZ_01_wet_prev,Facility_B_PZ_01_dry_prev,Facility_B_PZ_02_wet_prev,Facility_B_PZ_02_dry_prev,Facility_B_PZ_03_wet_prev,Facility_B_PZ_03_dry_prev,Facility_B_PZ_04_wet_prev,Facility_B_PZ_04_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04","Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_PZ_01_wet_concs,Facility_A_PZ_01_dry_concs,Facility_A_PZ_02_wet_concs,Facility_A_PZ_02_dry_concs,Facility_A_PZ_03_wet_concs,Facility_A_PZ_03_dry_concs,Facility_A_PZ_04_wet_concs,Facility_A_PZ_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04","Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_PZ_01_wet_concs,Facility_B_PZ_01_dry_concs,Facility_B_PZ_02_wet_concs,Facility_B_PZ_02_dry_concs,Facility_B_PZ_03_wet_concs,Facility_B_PZ_03_dry_concs,Facility_B_PZ_04_wet_concs,Facility_B_PZ_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","9","2","4","6","8","10"),
+    labels= c("Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04","Baseline", "PZ_01", "PZ_02", "PZ_03","PZ_04")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S4 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_S4.tiff", plot = figure_S4, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S4
+```
+
+```{r Figure S5}
+#Import
+Facility_A_baseline_recombined_prev <- read.csv('Facility_A_Baseline_Recombined_Prev.csv')
+Facility_A_baseline_recombined_prev$scenario <- as.factor(Facility_A_baseline_recombined_prev$scenario)
+Facility_A_baseline_recombined_prev$water <- as.factor(Facility_A_baseline_recombined_prev$water)
+
+Facility_A_baseline_concs <- read.csv('Facility_A_Baseline_Concs.csv')
+Facility_A_baseline_concs$scenario <- as.factor(Facility_A_baseline_concs$scenario)
+Facility_A_baseline_concs$water <- as.factor(Facility_A_baseline_concs$water)
+
+Facility_A_LZ_01_recombined_prev <- read.csv('Facility_A_LZ_01_Recombined_Prev.csv')
+Facility_A_LZ_01_recombined_prev$scenario <- as.factor(Facility_A_LZ_01_recombined_prev$scenario)
+Facility_A_LZ_01_recombined_prev$water <- as.factor(Facility_A_LZ_01_recombined_prev$water)
+
+Facility_A_LZ_01_concs <- read.csv('Facility_A_LZ_01_Concs.csv')
+Facility_A_LZ_01_concs$scenario <- as.factor(Facility_A_LZ_01_concs$scenario)
+Facility_A_LZ_01_concs$water <- as.factor(Facility_A_LZ_01_concs$water)
+
+Facility_A_LZ_02_recombined_prev <- read.csv('Facility_A_LZ_02_Recombined_Prev.csv')
+Facility_A_LZ_02_recombined_prev$scenario <- as.factor(Facility_A_LZ_02_recombined_prev$scenario)
+Facility_A_LZ_02_recombined_prev$water <- as.factor(Facility_A_LZ_02_recombined_prev$water)
+
+Facility_A_LZ_02_concs <- read.csv('Facility_A_LZ_02_Concs.csv')
+Facility_A_LZ_02_concs$scenario <- as.factor(Facility_A_LZ_02_concs$scenario)
+Facility_A_LZ_02_concs$water <- as.factor(Facility_A_LZ_02_concs$water)
+
+Facility_A_LZ_03_recombined_prev <- read.csv('Facility_A_LZ_03_Recombined_Prev.csv')
+Facility_A_LZ_03_recombined_prev$scenario <- as.factor(Facility_A_LZ_03_recombined_prev$scenario)
+Facility_A_LZ_03_recombined_prev$water <- as.factor(Facility_A_LZ_03_recombined_prev$water)
+
+Facility_A_LZ_03_concs <- read.csv('Facility_A_LZ_03_Concs.csv')
+Facility_A_LZ_03_concs$scenario <- as.factor(Facility_A_LZ_03_concs$scenario)
+Facility_A_LZ_03_concs$water <- as.factor(Facility_A_LZ_03_concs$water)
+
+Facility_A_base_wet_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Wet"),]
+Facility_A_base_wet_prev$ID <- as.factor(1)
+Facility_A_base_dry_prev <- Facility_A_baseline_recombined_prev[which(Facility_A_baseline_recombined_prev$water=="Dry"),]
+Facility_A_base_dry_prev$ID <- as.factor(2)
+Facility_A_LZ_01_wet_prev <- Facility_A_LZ_01_recombined_prev[which(Facility_A_LZ_01_recombined_prev$water=="Wet"),]
+Facility_A_LZ_01_wet_prev$ID <- as.factor(3)
+Facility_A_LZ_01_dry_prev <- Facility_A_LZ_01_recombined_prev[which(Facility_A_LZ_01_recombined_prev$water=="Dry"),]
+Facility_A_LZ_01_dry_prev$ID <- as.factor(4)
+Facility_A_LZ_02_wet_prev <- Facility_A_LZ_02_recombined_prev[which(Facility_A_LZ_02_recombined_prev$water=="Wet"),]
+Facility_A_LZ_02_wet_prev$ID <- as.factor(5)
+Facility_A_LZ_02_dry_prev <- Facility_A_LZ_02_recombined_prev[which(Facility_A_LZ_02_recombined_prev$water=="Dry"),]
+Facility_A_LZ_02_dry_prev$ID <- as.factor(6)
+Facility_A_LZ_03_wet_prev <- Facility_A_LZ_03_recombined_prev[which(Facility_A_LZ_03_recombined_prev$water=="Wet"),]
+Facility_A_LZ_03_wet_prev$ID <- as.factor(7)
+Facility_A_LZ_03_dry_prev <- Facility_A_LZ_03_recombined_prev[which(Facility_A_LZ_03_recombined_prev$water=="Dry"),]
+Facility_A_LZ_03_dry_prev$ID <- as.factor(8)
+
+Facility_A_base_wet_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Wet"),]
+Facility_A_base_wet_concs$ID <- as.factor(1)
+Facility_A_base_dry_concs <- Facility_A_baseline_concs[which(Facility_A_baseline_concs$water=="Dry"),]
+Facility_A_base_dry_concs$ID <- as.factor(2)
+Facility_A_LZ_01_wet_concs <- Facility_A_LZ_01_concs[which(Facility_A_LZ_01_concs$water=="Wet"),]
+Facility_A_LZ_01_wet_concs$ID <- as.factor(3)
+Facility_A_LZ_01_dry_concs <- Facility_A_LZ_01_concs[which(Facility_A_LZ_01_concs$water=="Dry"),]
+Facility_A_LZ_01_dry_concs$ID <- as.factor(4)
+Facility_A_LZ_02_wet_concs <- Facility_A_LZ_02_concs[which(Facility_A_LZ_02_concs$water=="Wet"),]
+Facility_A_LZ_02_wet_concs$ID <- as.factor(5)
+Facility_A_LZ_02_dry_concs <- Facility_A_LZ_02_concs[which(Facility_A_LZ_02_concs$water=="Dry"),]
+Facility_A_LZ_02_dry_concs$ID <- as.factor(6)
+Facility_A_LZ_03_wet_concs <- Facility_A_LZ_03_concs[which(Facility_A_LZ_03_concs$water=="Wet"),]
+Facility_A_LZ_03_wet_concs$ID <- as.factor(7)
+Facility_A_LZ_03_dry_concs <- Facility_A_LZ_03_concs[which(Facility_A_LZ_03_concs$water=="Dry"),]
+Facility_A_LZ_03_dry_concs$ID <- as.factor(8)
+
+Facility_B_baseline_recombined_prev <- read.csv('Facility_B_Baseline_Recombined_Prev.csv')
+Facility_B_baseline_recombined_prev$scenario <- as.factor(Facility_B_baseline_recombined_prev$scenario)
+Facility_B_baseline_recombined_prev$water <- as.factor(Facility_B_baseline_recombined_prev$water)
+
+Facility_B_baseline_concs <- read.csv('Facility_B_Baseline_Concs.csv')
+Facility_B_baseline_concs$scenario <- as.factor(Facility_B_baseline_concs$scenario)
+Facility_B_baseline_concs$water <- as.factor(Facility_B_baseline_concs$water)
+
+Facility_B_LZ_01_recombined_prev <- read.csv('Facility_B_LZ_01_Recombined_Prev.csv')
+Facility_B_LZ_01_recombined_prev$scenario <- as.factor(Facility_B_LZ_01_recombined_prev$scenario)
+Facility_B_LZ_01_recombined_prev$water <- as.factor(Facility_B_LZ_01_recombined_prev$water)
+
+Facility_B_LZ_01_concs <- read.csv('Facility_B_LZ_01_Concs.csv')
+Facility_B_LZ_01_concs$scenario <- as.factor(Facility_B_LZ_01_concs$scenario)
+Facility_B_LZ_01_concs$water <- as.factor(Facility_B_LZ_01_concs$water)
+
+Facility_B_LZ_02_recombined_prev <- read.csv('Facility_B_LZ_02_Recombined_Prev.csv')
+Facility_B_LZ_02_recombined_prev$scenario <- as.factor(Facility_B_LZ_02_recombined_prev$scenario)
+Facility_B_LZ_02_recombined_prev$water <- as.factor(Facility_B_LZ_02_recombined_prev$water)
+
+Facility_B_LZ_02_concs <- read.csv('Facility_B_LZ_02_Concs.csv')
+Facility_B_LZ_02_concs$scenario <- as.factor(Facility_B_LZ_02_concs$scenario)
+Facility_B_LZ_02_concs$water <- as.factor(Facility_B_LZ_02_concs$water)
+
+Facility_B_LZ_03_recombined_prev <- read.csv('Facility_B_LZ_03_Recombined_Prev.csv')
+Facility_B_LZ_03_recombined_prev$scenario <- as.factor(Facility_B_LZ_03_recombined_prev$scenario)
+Facility_B_LZ_03_recombined_prev$water <- as.factor(Facility_B_LZ_03_recombined_prev$water)
+
+Facility_B_LZ_03_concs <- read.csv('Facility_B_LZ_03_Concs.csv')
+Facility_B_LZ_03_concs$scenario <- as.factor(Facility_B_LZ_03_concs$scenario)
+Facility_B_LZ_03_concs$water <- as.factor(Facility_B_LZ_03_concs$water)
+
+Facility_B_base_wet_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Wet"),]
+Facility_B_base_wet_prev$ID <- as.factor(1)
+Facility_B_base_dry_prev <- Facility_B_baseline_recombined_prev[which(Facility_B_baseline_recombined_prev$water=="Dry"),]
+Facility_B_base_dry_prev$ID <- as.factor(2)
+Facility_B_LZ_01_wet_prev <- Facility_B_LZ_01_recombined_prev[which(Facility_B_LZ_01_recombined_prev$water=="Wet"),]
+Facility_B_LZ_01_wet_prev$ID <- as.factor(3)
+Facility_B_LZ_01_dry_prev <- Facility_B_LZ_01_recombined_prev[which(Facility_B_LZ_01_recombined_prev$water=="Dry"),]
+Facility_B_LZ_01_dry_prev$ID <- as.factor(4)
+Facility_B_LZ_02_wet_prev <- Facility_B_LZ_02_recombined_prev[which(Facility_B_LZ_02_recombined_prev$water=="Wet"),]
+Facility_B_LZ_02_wet_prev$ID <- as.factor(5)
+Facility_B_LZ_02_dry_prev <- Facility_B_LZ_02_recombined_prev[which(Facility_B_LZ_02_recombined_prev$water=="Dry"),]
+Facility_B_LZ_02_dry_prev$ID <- as.factor(6)
+Facility_B_LZ_03_wet_prev <- Facility_B_LZ_03_recombined_prev[which(Facility_B_LZ_03_recombined_prev$water=="Wet"),]
+Facility_B_LZ_03_wet_prev$ID <- as.factor(7)
+Facility_B_LZ_03_dry_prev <- Facility_B_LZ_03_recombined_prev[which(Facility_B_LZ_03_recombined_prev$water=="Dry"),]
+Facility_B_LZ_03_dry_prev$ID <- as.factor(8)
+
+Facility_B_base_wet_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Wet"),]
+Facility_B_base_wet_concs$ID <- as.factor(1)
+Facility_B_base_dry_concs <- Facility_B_baseline_concs[which(Facility_B_baseline_concs$water=="Dry"),]
+Facility_B_base_dry_concs$ID <- as.factor(2)
+Facility_B_LZ_01_wet_concs <- Facility_B_LZ_01_concs[which(Facility_B_LZ_01_concs$water=="Wet"),]
+Facility_B_LZ_01_wet_concs$ID <- as.factor(3)
+Facility_B_LZ_01_dry_concs <- Facility_B_LZ_01_concs[which(Facility_B_LZ_01_concs$water=="Dry"),]
+Facility_B_LZ_01_dry_concs$ID <- as.factor(4)
+Facility_B_LZ_02_wet_concs <- Facility_B_LZ_02_concs[which(Facility_B_LZ_02_concs$water=="Wet"),]
+Facility_B_LZ_02_wet_concs$ID <- as.factor(5)
+Facility_B_LZ_02_dry_concs <- Facility_B_LZ_02_concs[which(Facility_B_LZ_02_concs$water=="Dry"),]
+Facility_B_LZ_02_dry_concs$ID <- as.factor(6)
+Facility_B_LZ_03_wet_concs <- Facility_B_LZ_03_concs[which(Facility_B_LZ_03_concs$water=="Wet"),]
+Facility_B_LZ_03_wet_concs$ID <- as.factor(7)
+Facility_B_LZ_03_dry_concs <- Facility_B_LZ_03_concs[which(Facility_B_LZ_03_concs$water=="Dry"),]
+Facility_B_LZ_03_dry_concs$ID <- as.factor(8)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(rbind(Facility_A_base_wet_prev,Facility_A_base_dry_prev,Facility_A_LZ_01_wet_prev,Facility_A_LZ_01_dry_prev,Facility_A_LZ_02_wet_prev,Facility_A_LZ_02_dry_prev,Facility_A_LZ_03_wet_prev,Facility_A_LZ_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LZ_01", "LZ_02", "LZ_03","Baseline", "LZ_01", "LZ_02", "LZ_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facility_B_LZ_01_wet_prev,Facility_B_LZ_01_dry_prev,Facility_B_LZ_02_wet_prev,Facility_B_LZ_02_dry_prev,Facility_B_LZ_03_wet_prev,Facility_B_LZ_03_dry_prev), aes(x=ID, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LZ_01", "LZ_02", "LZ_03","Baseline", "LZ_01", "LZ_02", "LZ_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_LZ_01_wet_concs,Facility_A_LZ_01_dry_concs,Facility_A_LZ_02_wet_concs,Facility_A_LZ_02_dry_concs,Facility_A_LZ_03_wet_concs,Facility_A_LZ_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LZ_01", "LZ_02", "LZ_03","Baseline", "LZ_01", "LZ_02", "LZ_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(rbind(Facility_B_base_wet_concs,Facility_B_base_dry_concs,Facility_B_LZ_01_wet_concs,Facility_B_LZ_01_dry_concs,Facility_B_LZ_02_wet_concs,Facility_B_LZ_02_dry_concs,Facility_B_LZ_03_wet_concs,Facility_B_LZ_03_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  scale_fill_manual(name = "Area Water Group", values=c("#FFC20A","#0C7BDC")) +
+  scale_x_discrete(
+    limits = c("1","3","5","7","2","4","6","8"),
+    labels= c("Baseline", "LZ_01", "LZ_02", "LZ_03","Baseline", "LZ_01", "LZ_02", "LZ_03")
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S5 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "bottom"
+)
+ggsave("Figure_S5.tiff", plot = figure_S5, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S5
+```
+
+```{r Figure S6}
+#Import
+Facility_A_baseline_zone_prev <- read.csv('Facility_A_Baseline_Zone_Prev.csv')
+Facility_A_baseline_zone_prev$scenario <- as.factor(Facility_A_baseline_zone_prev$scenario)
+Facility_A_baseline_zone_prev$zone <- as.factor(Facility_A_baseline_zone_prev$zone)
+
+Facility_A_baseline_zone_concs <- read.csv('Facility_A_Baseline_Zone_Concs.csv')
+Facility_A_baseline_zone_concs$scenario <- as.factor(Facility_A_baseline_zone_concs$scenario)
+Facility_A_baseline_zone_concs$zone <- as.factor(Facility_A_baseline_zone_concs$zone)
+
+Facility_B_baseline_zone_prev <- read.csv('Facility_B_Baseline_Zone_Prev.csv')
+Facility_B_baseline_zone_prev$scenario <- as.factor(Facility_B_baseline_zone_prev$scenario)
+Facility_B_baseline_zone_prev$zone <- as.factor(Facility_B_baseline_zone_prev$zone)
+
+Facility_B_baseline_zone_concs <- read.csv('Facility_B_Baseline_Zone_Concs.csv')
+Facility_B_baseline_zone_concs$scenario <- as.factor(Facility_B_baseline_zone_concs$scenario)
+Facility_B_baseline_zone_concs$zone <- as.factor(Facility_B_baseline_zone_concs$zone)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(Facility_A_baseline_zone_prev, aes(x=zone, y=prevalence)) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(Facility_B_baseline_zone_prev, aes(x=zone, y=prevalence)) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(Facility_A_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(Facility_B_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S6 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "none"
+)
+ggsave("Figure_S6.tiff", plot = figure_S6, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S6
+```
+
