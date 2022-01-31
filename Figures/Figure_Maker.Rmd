@@ -49,7 +49,7 @@ CI_upper_mid <- exact_binomial_test$conf.int[2]*100
 figure_a <- ggplot(Facility_A_validation_shift, aes(x=variable, y=value, color=variable)) +
   stat_boxplot(geom ='errorbar', color="#0C7BDC") +
   geom_boxplot(width = 0.5, color="#0C7BDC") +
-  geom_point(aes(x = 'Mid', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Mid', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Mid', y = mean_point_mid), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Mid', ymin = CI_lower_mid, ymax = CI_upper_mid), color="black") +
   xlab('') +
@@ -71,7 +71,7 @@ CI_upper_mid <- exact_binomial_test$conf.int[2]*100
 figure_b <- ggplot(Facility_B_validation_shift, aes(x=variable, y=value, color=variable)) +
   stat_boxplot(geom ='errorbar', color="#0C7BDC") +
   geom_boxplot(width = 0.5, color="#0C7BDC") +
-  geom_point(aes(x = 'Mid', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Mid', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Mid', y = mean_point_mid), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Mid', ymin = CI_lower_mid, ymax = CI_upper_mid), color="black") +
   xlab('') +
@@ -98,10 +98,10 @@ CI_upper_z3 <- exact_binomial_test$conf.int[2]*100
 figure_c <- ggplot(Facility_A_validation_zone, aes(x=variable, y=value, color=variable)) +
   stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
   geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
-  geom_point(aes(x = 'Zone 2', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Zone 2', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Zone 2', y = mean_point_z2), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Zone 2', ymin = CI_lower_z2, ymax = CI_upper_z2), color="black") +
-  geom_point(aes(x = 'Zone 3', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Zone 3', y = mean(value, na.rm = TRUE)), color = "#FFC20A", shape = 4) +
   geom_point(aes(x = 'Zone 3', y = mean_point_z3), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Zone 3', ymin = CI_lower_z3, ymax = CI_upper_z3), color="black") +
   ylim(0, 100) +
@@ -127,10 +127,10 @@ CI_upper_z3 <- exact_binomial_test$conf.int[2]*100
 figure_d <- ggplot(Facility_B_validation_zone, aes(x=variable, y=value, color=variable)) +
   stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
   geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
-  geom_point(aes(x = 'Zone 2', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Zone 2', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Zone 2', y = mean_point_z2), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Zone 2', ymin = CI_lower_z2, ymax = CI_upper_z2), color="black") +
-  geom_point(aes(x = 'Zone 3', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Zone 3', y = mean(value, na.rm = TRUE)), color = "#FFC20A", shape = 4) +
   geom_point(aes(x = 'Zone 3', y = mean_point_z3), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Zone 3', ymin = CI_lower_z3, ymax = CI_upper_z3), color="black") +
   ylim(0, 100) +
@@ -144,7 +144,8 @@ figure_d <- ggplot(Facility_B_validation_zone, aes(x=variable, y=value, color=va
   )
 
 mean_point_wet <- length(which(Facility_A_sites_wet=='pos'))/(length(which(Facility_A_sites_wet=='neg'))+length(which(Facility_A_sites_wet=='pos')))*100
-exact_binomial_test <- binom.test(length(which(Facility_A_sites_wet=='pos')),(length(which(Facility_A_sites_wet=='neg'))+length(which(Facility_A_sites_wet=='pos'))))
+exact_binomial_test <- binom.test(length(which(Facility_A_sites_wet=='pos')),(length(which(Facility_A_sites_wet=='neg'))+length(which(Facility_A_sites_wet=='pos')))
+)
 CI_lower_wet <- exact_binomial_test$conf.int[1]*100
 CI_upper_wet <- exact_binomial_test$conf.int[2]*100
 
@@ -154,12 +155,13 @@ CI_lower_dry <- exact_binomial_test$conf.int[1]*100
 CI_upper_dry <- exact_binomial_test$conf.int[2]*100
 
 figure_e <- ggplot(Facility_A_validation_water, aes(x=variable, y=value, color=variable)) +
+  scale_x_discrete(limits=c("Wet","Dry")) +
   stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
   geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
-  geom_point(aes(x = 'Wet', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Wet', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Wet', y = mean_point_wet), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Wet', ymin = CI_lower_wet, ymax = CI_upper_wet), color="black") +
-  geom_point(aes(x = 'Dry', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Dry', y = mean(value, na.rm = TRUE)), color = "#FFC20A", shape = 4) +
   geom_point(aes(x = 'Dry', y = mean_point_dry), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Dry', ymin = CI_lower_dry, ymax = CI_upper_dry), color="black") +
   ylim(0, 100) +
@@ -183,12 +185,13 @@ CI_lower_dry <- exact_binomial_test$conf.int[1]*100
 CI_upper_dry <- exact_binomial_test$conf.int[2]*100
 
 figure_f <- ggplot(Facility_B_validation_water, aes(x=variable, y=value, color=variable)) +
+  scale_x_discrete(limits=c("Wet","Dry")) +
   stat_boxplot(geom ='errorbar', color=c("#0C7BDC","#FFC20A")) +
   geom_boxplot(width = 0.5, color=c("#0C7BDC","#FFC20A")) +
-  geom_point(aes(x = 'Wet', y = mean(value)), color = "#0C7BDC", shape = 4) +
+  geom_point(aes(x = 'Wet', y = mean(value, na.rm = TRUE)), color = "#0C7BDC", shape = 4) +
   geom_point(aes(x = 'Wet', y = mean_point_wet), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Wet', ymin = CI_lower_wet, ymax = CI_upper_wet), color="black") +
-  geom_point(aes(x = 'Dry', y = mean(value)), color = "#FFC20A", shape = 4) +
+  geom_point(aes(x = 'Dry', y = mean(value, na.rm = TRUE)), color = "#FFC20A", shape = 4) +
   geom_point(aes(x = 'Dry', y = mean_point_dry), color="black", shape = 4) +
   geom_errorbar(aes(x = 'Dry', ymin = CI_lower_dry, ymax = CI_upper_dry), color="black") +
   ylim(0, 100) +
@@ -350,7 +353,7 @@ figure_b <- ggplot(Facility_B_data_matrix_melted, aes(x = reorder(variable, valu
   ylim(-0.25,0.75) +
   coord_flip() +
   geom_hline(yintercept = 0) +
-  scale_x_discrete(labels = c(expression(tau[21]),expression(tau[11]),expression("P"[21]),expression(alpha),expression("P"["z"]),expression("P"[31]),expression("P"["r"]),expression("R"["d"]),expression("P"[11]),expression("N"["R"]))) +
+  scale_x_discrete(labels = c(expression(tau[13]),expression("N"["Z"]),expression(tau[11]),expression("P"[22]),expression("P"[21]),expression("P"["z"]),expression(alpha),expression("P"[31]),expression("P"["r"]),expression("R"["d"]),expression("P"[11]),expression("N"["R"]))) +
   theme(
     axis.text.y = element_text(size = 12, angle = 0, face = "plain")
   )
@@ -1126,7 +1129,7 @@ figure_b <- ggplot(rbind(Facility_B_base_wet_prev,Facility_B_base_dry_prev,Facil
     axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
   )
 
-figure_c <- ggplot(rbind(Facility_A_base_wet_concs,Facility_A_base_dry_concs,Facility_A_AI_01_wet_concs,Facility_A_AI_01_dry_concs,Facility_A_AI_02C1_wet_concs,Facility_A_AI_02C1_dry_concs,Facility_A_AI_02C2_wet_concs,Facility_A_AI_02C2_dry_concs,Facility_A_AI_03C1_wet_concs,Facility_A_AI_03C1_dry_concs,Facility_A_AI_03C2_wet_concs,Facility_A_AI_03C2_dry_concs,Facility_A_AI_04_wet_concs,Facility_A_AI_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
+figure_c <- ggplot(rbind(Facility_A_base_dry_concs,Facility_A_AI_01_wet_concs,Facility_A_AI_01_dry_concs,Facility_A_AI_02C1_wet_concs,Facility_A_AI_02C1_dry_concs,Facility_A_AI_02C2_wet_concs,Facility_A_AI_02C2_dry_concs,Facility_A_AI_03C1_wet_concs,Facility_A_AI_03C1_dry_concs,Facility_A_AI_03C2_wet_concs,Facility_A_AI_03C2_dry_concs,Facility_A_AI_04_wet_concs,Facility_A_AI_04_dry_concs), aes(x=ID, y=log10(concentration), fill=water)) +
   geom_boxplot() +
   xlab('') +
   ylab(expression(Log["10"]*" CFU/cm sq.")) +
@@ -1378,6 +1381,82 @@ figure_10 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
 )
 ggsave("Figure_10.tiff", plot = figure_10, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
 figure_10
+```
+
+```{r Figure S1}
+#Import
+Facility_A_baseline_zone_prev <- read.csv('Facility_A_Baseline_Zone_Prev.csv')
+Facility_A_baseline_zone_prev$scenario <- as.factor(Facility_A_baseline_zone_prev$scenario)
+Facility_A_baseline_zone_prev$zone <- as.factor(Facility_A_baseline_zone_prev$zone)
+
+Facility_A_baseline_zone_concs <- read.csv('Facility_A_Baseline_Zone_Concs.csv')
+Facility_A_baseline_zone_concs$scenario <- as.factor(Facility_A_baseline_zone_concs$scenario)
+Facility_A_baseline_zone_concs$zone <- as.factor(Facility_A_baseline_zone_concs$zone)
+
+Facility_B_baseline_zone_prev <- read.csv('Facility_B_Baseline_Zone_Prev.csv')
+Facility_B_baseline_zone_prev$scenario <- as.factor(Facility_B_baseline_zone_prev$scenario)
+Facility_B_baseline_zone_prev$zone <- as.factor(Facility_B_baseline_zone_prev$zone)
+
+Facility_B_baseline_zone_concs <- read.csv('Facility_B_Baseline_Zone_Concs.csv')
+Facility_B_baseline_zone_concs$scenario <- as.factor(Facility_B_baseline_zone_concs$scenario)
+Facility_B_baseline_zone_concs$zone <- as.factor(Facility_B_baseline_zone_concs$zone)
+
+x_axis_text_size <- 12
+y_axis_title_size <- 12
+
+#Plot
+figure_a <- ggplot(Facility_A_baseline_zone_prev, aes(x=zone, y=prevalence)) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_b <- ggplot(Facility_B_baseline_zone_prev, aes(x=zone, y=prevalence)) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_c <- ggplot(Facility_A_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_d <- ggplot(Facility_B_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
+  geom_boxplot() +
+  xlab('Zone') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
+  )
+
+figure_S1 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
+  labels = c('A', 'B', 'C', 'D'),
+  ncol = 2,
+  nrow = 2,
+  common.legend = TRUE, legend = "none"
+)
+ggsave("Figure_S1.tiff", plot = figure_S1, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
+figure_S1
 ```
 
 ```{r Figure S2}
@@ -2258,81 +2337,5 @@ figure_S5 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
 )
 ggsave("Figure_S5.tiff", plot = figure_S5, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
 figure_S5
-```
-
-```{r Figure S6}
-#Import
-Facility_A_baseline_zone_prev <- read.csv('Facility_A_Baseline_Zone_Prev.csv')
-Facility_A_baseline_zone_prev$scenario <- as.factor(Facility_A_baseline_zone_prev$scenario)
-Facility_A_baseline_zone_prev$zone <- as.factor(Facility_A_baseline_zone_prev$zone)
-
-Facility_A_baseline_zone_concs <- read.csv('Facility_A_Baseline_Zone_Concs.csv')
-Facility_A_baseline_zone_concs$scenario <- as.factor(Facility_A_baseline_zone_concs$scenario)
-Facility_A_baseline_zone_concs$zone <- as.factor(Facility_A_baseline_zone_concs$zone)
-
-Facility_B_baseline_zone_prev <- read.csv('Facility_B_Baseline_Zone_Prev.csv')
-Facility_B_baseline_zone_prev$scenario <- as.factor(Facility_B_baseline_zone_prev$scenario)
-Facility_B_baseline_zone_prev$zone <- as.factor(Facility_B_baseline_zone_prev$zone)
-
-Facility_B_baseline_zone_concs <- read.csv('Facility_B_Baseline_Zone_Concs.csv')
-Facility_B_baseline_zone_concs$scenario <- as.factor(Facility_B_baseline_zone_concs$scenario)
-Facility_B_baseline_zone_concs$zone <- as.factor(Facility_B_baseline_zone_concs$zone)
-
-x_axis_text_size <- 12
-y_axis_title_size <- 12
-
-#Plot
-figure_a <- ggplot(Facility_A_baseline_zone_prev, aes(x=zone, y=prevalence)) +
-  geom_boxplot() +
-  xlab('Zone') +
-  ylab('Prevalence %') +
-  ylim(0,100) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
-    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
-  )
-
-figure_b <- ggplot(Facility_B_baseline_zone_prev, aes(x=zone, y=prevalence)) +
-  geom_boxplot() +
-  xlab('Zone') +
-  ylab('Prevalence %') +
-  ylim(0,100) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
-    axis.title.y = element_text(color = "grey20", size = y_axis_title_size, angle = 90, hjust = .5, vjust = 1, face = "plain")
-  )
-
-figure_c <- ggplot(Facility_A_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
-  geom_boxplot() +
-  xlab('Zone') +
-  ylab(expression(Log["10"]*" CFU/cm sq.")) +
-  ylim(-10,5) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
-    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
-  )
-
-figure_d <- ggplot(Facility_B_baseline_zone_concs, aes(x=zone, y=log10(concentration))) +
-  geom_boxplot() +
-  xlab('Zone') +
-  ylab(expression(Log["10"]*" CFU/cm sq.")) +
-  ylim(-10,5) +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(size = x_axis_text_size, angle = 45, hjust = 1, vjust = 1, face = "plain"),
-    axis.title.y = element_text(color = "grey20", size = y_axis_title_size-1.25, angle = 90, hjust = .5, vjust = 1, face = "plain")
-  )
-
-figure_S6 <- ggarrange(figure_a, figure_b, figure_c, figure_d,
-  labels = c('A', 'B', 'C', 'D'),
-  ncol = 2,
-  nrow = 2,
-  common.legend = TRUE, legend = "none"
-)
-ggsave("Figure_S6.tiff", plot = figure_S6, device = "tiff", width = 19.05, height = 22.23*0.8, units = "cm", dpi = 600, compression = "lzw")
-figure_S6
 ```
 
