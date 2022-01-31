@@ -71,6 +71,7 @@ globals ;define global variables that can be used and referenced anywhere in the
   spread-tc randomEvent random-event-list
   m-crate-prevalence t-crate-prevalence w-crate-prevalence r-crate-prevalence f-crate-prevalence food-conc food-tc zone4-load random-load
   m-san-reduction  t-san-reduction  w-san-reduction  r-san-reduction  f-san-reduction a-san-reduction prob-cleanable
+  prob-cleanable-cln prob-cleanable-san
   mu-max K p-patch-spread p-water-spread crate-prevalence-min crate-prevalence-ml crate-prevalence-max p-food-dropped p-condensation p-random-noise p-zone4-intro
   traffic-veh traffic-high traffic-low traffic-neg
   hoelzer-tc-matrix hoelzer-std-matrix expert-link-min-matrix expert-link-ml-matrix expert-link-max-matrix
@@ -1091,6 +1092,9 @@ to setup-submodel-params ; here are all of the global parameter values that need
   set spread-tc randomfloat-in-range 0 5 ; transfer coefficient for patch spread events - assumed - don't need to change
   (ifelse
     scenario = 40 [
+      set prob-cleanable 95 ;probability that cleanable sites are truly cleanable - assumed standard scenario
+    ]
+    scenario = 50 [
       set prob-cleanable 50 ;probability that cleanable sites are truly cleanable - assumed standard scenario
     ]
     ;else
@@ -1203,7 +1207,7 @@ to setup-submodel-params ; here are all of the global parameter values that need
     ]
     ;else
     [
-      set all-crate-prevalence (10 ^ (random-pert crate-prevalence-min crate-prevalence-ml crate-prevalence-max 5.4)) * 1.5 * 1 ; sets daily prev in raw materials - don't change Standard Scenario
+      set all-crate-prevalence (10 ^ (random-pert crate-prevalence-min crate-prevalence-ml crate-prevalence-max 5.4)) * 1 ; sets daily prev in raw materials - don't change Standard Scenario
     ]
   )
   set m-crate-prevalence all-crate-prevalence
@@ -3179,14 +3183,6 @@ to run-event ; here is where you need to bring everything together based on prod
 end
 
 to collect-data ; this is where you need to collect data for global outputs defined at the beginning - these are specific to a facility and agents
-;  let clean-room 0 ask a-zone 204 [if z-listeria > 0 [set clean-room 1]]
-;  let sarah-floor 0 ask patches with [(pxcor > 22 and pxcor < 30) and (pycor > 27 and pycor < 35)] [if p-listeria > 0 [set sarah-floor 1]]
-;  let agent0 0 ask a-zone 0 [if z-listeria > 0 [set agent0 1]]
-;  let agent1 0 ask a-zone 1 [if z-listeria > 0 [set agent1 1] ]
-;  let catch-guide-sarah (turtle-set a-zone 103 a-zone 104 a-zone 105 a-zone 106)
-;  let catch-guide 0 ask catch-guide-sarah [if z-listeria > 0 [set catch-guide 1]]
-;  let dry-dock 0 ask patches with [ (pxcor = 15) and (pycor > 3 and pycor < 17)] [if p-listeria > 0 [set dry-dock 1]]
-
   if event = "pre-op" [
     set zones-pre-prev ((count zones with [z-listeria > 0]) / count zones ) * 100
     set z1-pre ((count zones with [z-category = 1 and z-listeria > 0 ]) / count zones with [z-category = 1]) * 100
@@ -3203,253 +3199,7 @@ to collect-data ; this is where you need to collect data for global outputs defi
     set z3-beg ((count zones with [z-category = 3 and z-listeria > 0]) / count zones with [z-category = 3]) * 100
     set p-beg ((count patches with [pcolor != 0 and p-listeria > 0 ]) / count patches with [pcolor != 0])  * 100
     set e-beg ((count zones with [z-item-name = "employee" and z-listeria > 0 ]) / count zones with [z-item-name = "employee"]) * 100
-;    if day = 2 [
-;      ask a-zone 0 [if z-listeria > 0 [set m-zone-0b 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set m-zone-3b 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set m-zone-4b 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set m-zone-20b 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set m-zone-26b 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set m-zone-29b 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set m-zone-30b 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set m-zone-31b 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set m-zone-38b 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set m-zone-78b 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set m-zone-116b 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set m-zone-134b 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set m-zone-166b 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set m-zone-186b 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set m-zone-187b 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set m-zone-188b 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set m-zone-190b 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set m-zone-191b 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set m-zone-193b 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set m-zone-194b 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set m-zone-195b 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set m-zone-196b 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set m-zone-197b 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set m-zone-198b 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set m-zone-199b 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set m-zone-200b 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set m-zone-201b 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set m-zone-202b 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set m-zone-203b 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set m-zone-204b 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set m-zone-205b 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set m-zone-206b 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set m-zone-207b 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set m-zone-208b 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set m-zone-209b 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set m-zone-210b 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set m-zone-211b 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set m-zone-212b 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set m-zone-213b 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set m-zone-214b 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set m-zone-215b 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set m-zone-216b 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set m-zone-217b 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set m-zone-218b 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set m-zone-219b 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set m-zone-220b 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set m-zone-221b 1]]
-;    ]
-;    if day = 3 [
-;      ask a-zone 0 [if z-listeria > 0 [set t-zone-0b 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set t-zone-3b 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set t-zone-4b 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set t-zone-20b 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set t-zone-26b 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set t-zone-29b 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set t-zone-30b 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set t-zone-31b 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set t-zone-38b 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set t-zone-78b 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set t-zone-116b 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set t-zone-134b 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set t-zone-166b 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set t-zone-186b 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set t-zone-187b 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set t-zone-188b 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set t-zone-190b 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set t-zone-191b 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set t-zone-193b 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set t-zone-194b 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set t-zone-195b 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set t-zone-196b 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set t-zone-197b 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set t-zone-198b 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set t-zone-199b 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set t-zone-200b 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set t-zone-201b 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set t-zone-202b 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set t-zone-203b 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set t-zone-204b 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set t-zone-205b 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set t-zone-206b 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set t-zone-207b 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set t-zone-208b 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set t-zone-209b 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set t-zone-210b 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set t-zone-211b 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set t-zone-212b 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set t-zone-213b 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set t-zone-214b 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set t-zone-215b 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set t-zone-216b 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set t-zone-217b 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set t-zone-218b 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set t-zone-219b 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set t-zone-220b 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set t-zone-221b 1]]
-;    ]
-;    if day = 4 [
-;      ask a-zone 0 [if z-listeria > 0 [set w-zone-0b 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set w-zone-3b 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set w-zone-4b 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set w-zone-20b 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set w-zone-26b 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set w-zone-29b 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set w-zone-30b 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set w-zone-31b 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set w-zone-38b 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set w-zone-78b 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set w-zone-116b 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set w-zone-134b 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set w-zone-166b 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set w-zone-186b 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set w-zone-187b 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set w-zone-188b 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set w-zone-190b 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set w-zone-191b 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set w-zone-193b 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set w-zone-194b 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set w-zone-195b 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set w-zone-196b 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set w-zone-197b 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set w-zone-198b 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set w-zone-199b 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set w-zone-200b 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set w-zone-201b 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set w-zone-202b 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set w-zone-203b 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set w-zone-204b 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set w-zone-205b 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set w-zone-206b 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set w-zone-207b 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set w-zone-208b 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set w-zone-209b 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set w-zone-210b 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set w-zone-211b 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set w-zone-212b 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set w-zone-213b 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set w-zone-214b 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set w-zone-215b 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set w-zone-216b 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set w-zone-217b 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set w-zone-218b 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set w-zone-219b 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set w-zone-220b 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set w-zone-221b 1]]
-;    ]
-;    if day = 5 [
-;      ask a-zone 0 [if z-listeria > 0 [set r-zone-0b 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set r-zone-3b 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set r-zone-4b 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set r-zone-20b 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set r-zone-26b 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set r-zone-29b 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set r-zone-30b 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set r-zone-31b 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set r-zone-38b 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set r-zone-78b 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set r-zone-116b 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set r-zone-134b 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set r-zone-166b 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set r-zone-186b 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set r-zone-187b 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set r-zone-188b 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set r-zone-190b 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set r-zone-191b 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set r-zone-193b 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set r-zone-194b 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set r-zone-195b 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set r-zone-196b 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set r-zone-197b 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set r-zone-198b 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set r-zone-199b 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set r-zone-200b 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set r-zone-201b 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set r-zone-202b 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set r-zone-203b 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set r-zone-204b 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set r-zone-205b 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set r-zone-206b 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set r-zone-207b 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set r-zone-208b 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set r-zone-209b 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set r-zone-210b 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set r-zone-211b 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set r-zone-212b 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set r-zone-213b 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set r-zone-214b 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set r-zone-215b 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set r-zone-216b 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set r-zone-217b 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set r-zone-218b 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set r-zone-219b 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set r-zone-220b 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set r-zone-221b 1]]
-;    ]
-;    if day = 6 [
-;      ask a-zone 0 [if z-listeria > 0 [set f-zone-0b 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set f-zone-3b 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set f-zone-4b 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set f-zone-20b 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set f-zone-26b 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set f-zone-29b 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set f-zone-30b 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set f-zone-31b 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set f-zone-38b 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set f-zone-78b 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set f-zone-116b 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set f-zone-134b 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set f-zone-166b 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set f-zone-186b 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set f-zone-187b 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set f-zone-188b 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set f-zone-190b 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set f-zone-191b 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set f-zone-193b 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set f-zone-194b 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set f-zone-195b 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set f-zone-196b 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set f-zone-197b 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set f-zone-198b 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set f-zone-199b 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set f-zone-200b 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set f-zone-201b 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set f-zone-202b 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set f-zone-203b 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set f-zone-204b 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set f-zone-205b 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set f-zone-206b 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set f-zone-207b 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set f-zone-208b 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set f-zone-209b 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set f-zone-210b 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set f-zone-211b 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set f-zone-212b 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set f-zone-213b 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set f-zone-214b 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set f-zone-215b 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set f-zone-216b 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set f-zone-217b 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set f-zone-218b 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set f-zone-219b 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set f-zone-220b 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set f-zone-221b 1]]
-;    ]
   ]
-;  if (event = "production" and production-time = 8) [
   if (event = "production" and production-time = 3) [
     set zones-mid-prev ((count zones with [z-listeria > 0])/ count zones ) * 100
     set z1-mid ((count zones with [z-category = 1 and z-listeria > 0 ]) / count zones with [z-category = 1]) * 100
@@ -3457,10 +3207,8 @@ to collect-data ; this is where you need to collect data for global outputs defi
     set z3-mid ((count zones with [z-category = 3 and z-listeria > 0]) / count zones with [z-category = 3]) * 100
     set p-mid ((count patches with [pcolor != 0 and p-listeria > 0 ]) / count patches with [pcolor != 0])  * 100
     set e-mid ((count zones with [z-item-name = "employee" and z-listeria > 0 ]) / count zones with [z-item-name = "employee"]) * 100
-;    set crack 0 ask patches with [ (pxcor > 16 and pxcor < 23) and (pycor > 28 and pycor < 36)] [if p-listeria > 0 [set crack 1]]
     set crack 0 ask patches with [ (pxcor > 117 and pxcor < 36) and (pycor > 28 and pycor < 36)] [if p-listeria > 0 [set crack 1]]
   ]
-;  if (event = "production" and production-time = 16) [
   if (event = "production" and production-time = 5) [
     set zones-post-prev ((count zones with [z-listeria > 0])/ count zones ) * 100
     set z1-post ((count zones with [z-category = 1 and z-listeria > 0 ]) / count zones with [z-category = 1]) * 100
@@ -3468,251 +3216,6 @@ to collect-data ; this is where you need to collect data for global outputs defi
     set z3-post ((count zones with [z-category = 3 and z-listeria > 0]) / count zones with [z-category = 3]) * 100
     set p-post ((count patches with [pcolor != 0 and p-listeria > 0 ]) / count patches with [pcolor != 0])  * 100
     set e-post ((count zones with [z-item-name = "employee" and z-listeria > 0 ]) / count zones with [z-item-name = "employee"]) * 100
-;    if day = 2 [
-;      ask a-zone 0 [if z-listeria > 0 [set m-zone-0e 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set m-zone-3e 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set m-zone-4e 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set m-zone-20e 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set m-zone-26e 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set m-zone-29e 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set m-zone-30e 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set m-zone-31e 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set m-zone-38e 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set m-zone-78e 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set m-zone-116e 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set m-zone-134e 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set m-zone-166e 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set m-zone-186e 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set m-zone-187e 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set m-zone-188e 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set m-zone-190e 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set m-zone-191e 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set m-zone-193e 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set m-zone-194e 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set m-zone-195e 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set m-zone-196e 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set m-zone-197e 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set m-zone-198e 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set m-zone-199e 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set m-zone-200e 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set m-zone-201e 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set m-zone-202e 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set m-zone-203e 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set m-zone-204e 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set m-zone-205e 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set m-zone-206e 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set m-zone-207e 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set m-zone-208e 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set m-zone-209e 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set m-zone-210e 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set m-zone-211e 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set m-zone-212e 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set m-zone-213e 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set m-zone-214e 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set m-zone-215e 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set m-zone-216e 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set m-zone-217e 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set m-zone-218e 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set m-zone-219e 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set m-zone-220e 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set m-zone-221e 1]]
-;    ]
-;    if day = 3 [
-;      ask a-zone 0 [if z-listeria > 0 [set t-zone-0e 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set t-zone-3e 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set t-zone-4e 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set t-zone-20e 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set t-zone-26e 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set t-zone-29e 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set t-zone-30e 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set t-zone-31e 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set t-zone-38e 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set t-zone-78e 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set t-zone-116e 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set t-zone-134e 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set t-zone-166e 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set t-zone-186e 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set t-zone-187e 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set t-zone-188e 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set t-zone-190e 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set t-zone-191e 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set t-zone-193e 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set t-zone-194e 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set t-zone-195e 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set t-zone-196e 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set t-zone-197e 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set t-zone-198e 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set t-zone-199e 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set t-zone-200e 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set t-zone-201e 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set t-zone-202e 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set t-zone-203e 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set t-zone-204e 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set t-zone-205e 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set t-zone-206e 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set t-zone-207e 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set t-zone-208e 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set t-zone-209e 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set t-zone-210e 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set t-zone-211e 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set t-zone-212e 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set t-zone-213e 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set t-zone-214e 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set t-zone-215e 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set t-zone-216e 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set t-zone-217e 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set t-zone-218e 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set t-zone-219e 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set t-zone-220e 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set t-zone-221e 1]]
-;    ]
-;    if day = 4 [
-;      ask a-zone 0 [if z-listeria > 0 [set w-zone-0e 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set w-zone-3e 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set w-zone-4e 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set w-zone-20e 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set w-zone-26e 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set w-zone-29e 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set w-zone-30e 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set w-zone-31e 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set w-zone-38e 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set w-zone-78e 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set w-zone-116e 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set w-zone-134e 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set w-zone-166e 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set w-zone-186e 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set w-zone-187e 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set w-zone-188e 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set w-zone-190e 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set w-zone-191e 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set w-zone-193e 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set w-zone-194e 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set w-zone-195e 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set w-zone-196e 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set w-zone-197e 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set w-zone-198e 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set w-zone-199e 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set w-zone-200e 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set w-zone-201e 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set w-zone-202e 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set w-zone-203e 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set w-zone-204e 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set w-zone-205e 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set w-zone-206e 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set w-zone-207e 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set w-zone-208e 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set w-zone-209e 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set w-zone-210e 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set w-zone-211e 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set w-zone-212e 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set w-zone-213e 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set w-zone-214e 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set w-zone-215e 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set w-zone-216e 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set w-zone-217e 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set w-zone-218e 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set w-zone-219e 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set w-zone-220e 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set w-zone-221e 1]]
-;    ]
-;    if day = 5 [
-;      ask a-zone 0 [if z-listeria > 0 [set r-zone-0e 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set r-zone-3e 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set r-zone-4e 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set r-zone-20e 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set r-zone-26e 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set r-zone-29e 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set r-zone-30e 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set r-zone-31e 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set r-zone-38e 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set r-zone-78e 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set r-zone-116e 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set r-zone-134e 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set r-zone-166e 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set r-zone-186e 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set r-zone-187e 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set r-zone-188e 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set r-zone-190e 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set r-zone-191e 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set r-zone-193e 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set r-zone-194e 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set r-zone-195e 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set r-zone-196e 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set r-zone-197e 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set r-zone-198e 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set r-zone-199e 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set r-zone-200e 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set r-zone-201e 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set r-zone-202e 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set r-zone-203e 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set r-zone-204e 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set r-zone-205e 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set r-zone-206e 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set r-zone-207e 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set r-zone-208e 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set r-zone-209e 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set r-zone-210e 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set r-zone-211e 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set r-zone-212e 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set r-zone-213e 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set r-zone-214e 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set r-zone-215e 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set r-zone-216e 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set r-zone-217e 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set r-zone-218e 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set r-zone-219e 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set r-zone-220e 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set r-zone-221e 1]]
-;    ]
-;    if day = 6 [
-;      ask a-zone 0 [if z-listeria > 0 [set f-zone-0e 1]]
-;      ask a-zone 3 [if z-listeria > 0 [set f-zone-3e 1]]
-;      ask a-zone 4 [if z-listeria > 0 [set f-zone-4e 1]]
-;      ask a-zone 20 [if z-listeria > 0 [set f-zone-20e 1]]
-;      ask a-zone 26 [if z-listeria > 0 [set f-zone-26e 1]]
-;      ask a-zone 29 [if z-listeria > 0 [set f-zone-29e 1]]
-;      ask a-zone 30 [if z-listeria > 0 [set f-zone-30e 1]]
-;      ask a-zone 31 [if z-listeria > 0 [set f-zone-31e 1]]
-;      ask a-zone 38 [if z-listeria > 0 [set f-zone-38e 1]]
-;      ask a-zone 78 [if z-listeria > 0 [set f-zone-78e 1]]
-;      ask a-zone 116 [if z-listeria > 0 [set f-zone-116e 1]]
-;      ask a-zone 134 [if z-listeria > 0 [set f-zone-134e 1]]
-;      ask a-zone 166 [if z-listeria > 0 [set f-zone-166e 1]]
-;      ask a-zone 186 [if z-listeria > 0 [set f-zone-186e 1]]
-;      ask a-zone 187 [if z-listeria > 0 [set f-zone-187e 1]]
-;      ask a-zone 188 [if z-listeria > 0 [set f-zone-188e 1]]
-;      ask a-zone 190 [if z-listeria > 0 [set f-zone-190e 1]]
-;      ask a-zone 191 [if z-listeria > 0 [set f-zone-191e 1]]
-;      ask a-zone 193 [if z-listeria > 0 [set f-zone-193e 1]]
-;      ask a-zone 194 [if z-listeria > 0 [set f-zone-194e 1]]
-;      ask a-zone 195 [if z-listeria > 0 [set f-zone-195e 1]]
-;      ask a-zone 196 [if z-listeria > 0 [set f-zone-196e 1]]
-;      ask a-zone 197 [if z-listeria > 0 [set f-zone-197e 1]]
-;      ask a-zone 198 [if z-listeria > 0 [set f-zone-198e 1]]
-;      ask a-zone 199 [if z-listeria > 0 [set f-zone-199e 1]]
-;      ask a-zone 200 [if z-listeria > 0 [set f-zone-200e 1]]
-;      ask a-zone 201 [if z-listeria > 0 [set f-zone-201e 1]]
-;      ask a-zone 202 [if z-listeria > 0 [set f-zone-202e 1]]
-;      ask a-zone 203 [if z-listeria > 0 [set f-zone-203e 1]]
-;      ask a-zone 204 [if z-listeria > 0 [set f-zone-204e 1]]
-;      ask a-zone 205 [if z-listeria > 0 [set f-zone-205e 1]]
-;      ask a-zone 206 [if z-listeria > 0 [set f-zone-206e 1]]
-;      ask a-zone 207 [if z-listeria > 0 [set f-zone-207e 1]]
-;      ask a-zone 208 [if z-listeria > 0 [set f-zone-208e 1]]
-;      ask a-zone 209 [if z-listeria > 0 [set f-zone-209e 1]]
-;      ask a-zone 210 [if z-listeria > 0 [set f-zone-210e 1]]
-;      ask a-zone 211 [if z-listeria > 0 [set f-zone-211e 1]]
-;      ask a-zone 212 [if z-listeria > 0 [set f-zone-212e 1]]
-;      ask a-zone 213 [if z-listeria > 0 [set f-zone-213e 1]]
-;      ask a-zone 214 [if z-listeria > 0 [set f-zone-214e 1]]
-;      ask a-zone 215 [if z-listeria > 0 [set f-zone-215e 1]]
-;      ask a-zone 216 [if z-listeria > 0 [set f-zone-216e 1]]
-;      ask a-zone 217 [if z-listeria > 0 [set f-zone-217e 1]]
-;      ask a-zone 218 [if z-listeria > 0 [set f-zone-218e 1]]
-;      ask a-zone 219 [if z-listeria > 0 [set f-zone-219e 1]]
-;      ask a-zone 220 [if z-listeria > 0 [set f-zone-220e 1]]
-;      ask a-zone 221 [if z-listeria > 0 [set f-zone-221e 1]]
-;    ]
   ]
   if day = 2 [
     set m-z-sample-prev z-sample-prev
@@ -3764,8 +3267,6 @@ to collect-data ; this is where you need to collect data for global outputs defi
     set t-p-post p-post
     set t-e-post e-post
     set t-z3-post z3-post
-;    if t-clean-room != 1 [ set t-clean-room clean-room ]
-;    if t-agent0 != 1 [set t-agent0 agent0] if t-agent1 != 1 [set t-agent1 agent1]]
   ]
   if day = 4 [
     set w-z-sample-prev z-sample-prev set w-zones-pre zones-pre-prev set w-zones-beg zones-beg-prev set w-zones-post zones-post-prev set w-zones-mid zones-mid-prev
@@ -3789,7 +3290,6 @@ to collect-data ; this is where you need to collect data for global outputs defi
     set w-p-post p-post
     set w-e-post e-post
     set w-z3-post z3-post
-;    set w-crack crack set w-catch-guide catch-guide]
   ]
   if day = 5 [
     set r-z-sample-prev z-sample-prev set r-zones-pre zones-pre-prev set r-zones-beg zones-beg-prev set r-zones-post zones-post-prev set r-zones-mid zones-mid-prev
@@ -4509,12 +4009,15 @@ to clean
       ]
     ]
   ]
-  ask patches with [p-listeria > 0 and p-cleanable?]
-    [ ifelse random-float 100 < prob-cleanable
-      [set p-listeria (random-binomial (p-listeria) (reduction))
-      set p-listeria-concentration (p-listeria / [p-area] of self)]
-      [set temporary-niches temporary-niches + 1
-      set p-temp-niche p-temp-niche + 1]]
+  ask patches with [p-listeria > 0 and p-cleanable?] [
+    ifelse random-float 100 < prob-cleanable [
+      set p-listeria (random-binomial (p-listeria) (reduction))
+      set p-listeria-concentration (p-listeria / [p-area] of self)
+    ] [
+      set temporary-niches temporary-niches + 1
+      set p-temp-niche p-temp-niche + 1
+    ]
+  ]
 end
 
 to sample ; will need modification depending on historical sampling practice and data to be collected
@@ -5395,7 +4898,7 @@ local-seed
 local-seed
 0
 100
-0.0
+994.0
 1
 1
 NIL
@@ -5410,7 +4913,7 @@ scenario
 scenario
 0
 49
-0.0
+14.0
 1
 1
 NIL
@@ -53674,6 +53177,3398 @@ NetLogo 6.2.0
       <value value="0"/>
       <value value="0"/>
     </enumeratedValueSet>
+  </experiment>
+  <experiment name="1000_Runs_New_Gamma_Delta_Values" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>spread-tc</metric>
+    <metric>m-crate-prevalence</metric>
+    <metric>t-crate-prevalence</metric>
+    <metric>w-crate-prevalence</metric>
+    <metric>r-crate-prevalence</metric>
+    <metric>f-crate-prevalence</metric>
+    <metric>food-conc</metric>
+    <metric>food-tc</metric>
+    <metric>zone4-load</metric>
+    <metric>random-load</metric>
+    <metric>m-san-reduction</metric>
+    <metric>t-san-reduction</metric>
+    <metric>w-san-reduction</metric>
+    <metric>r-san-reduction</metric>
+    <metric>f-san-reduction</metric>
+    <metric>a-san-reduction</metric>
+    <metric>prob-cleanable</metric>
+    <metric>mu-max</metric>
+    <metric>K</metric>
+    <metric>p-patch-spread</metric>
+    <metric>p-water-spread</metric>
+    <metric>p-food-dropped</metric>
+    <metric>p-condensation</metric>
+    <metric>p-random-noise</metric>
+    <metric>p-zone4-intro</metric>
+    <metric>p11</metric>
+    <metric>p12</metric>
+    <metric>p13</metric>
+    <metric>p14</metric>
+    <metric>p21</metric>
+    <metric>p22</metric>
+    <metric>p23</metric>
+    <metric>p24</metric>
+    <metric>p31</metric>
+    <metric>p32</metric>
+    <metric>p33</metric>
+    <metric>p34</metric>
+    <metric>p41</metric>
+    <metric>p42</metric>
+    <metric>p43</metric>
+    <metric>p44</metric>
+    <metric>tc11</metric>
+    <metric>tc12</metric>
+    <metric>tc13</metric>
+    <metric>tc14</metric>
+    <metric>tc21</metric>
+    <metric>tc22</metric>
+    <metric>tc23</metric>
+    <metric>tc24</metric>
+    <metric>tc31</metric>
+    <metric>tc32</metric>
+    <metric>tc33</metric>
+    <metric>tc34</metric>
+    <metric>tc41</metric>
+    <metric>tc42</metric>
+    <metric>tc43</metric>
+    <metric>tc44</metric>
+    <metric>initial-zone-prevalence</metric>
+    <metric>initial-contamination-level</metric>
+    <metric>zones-initial</metric>
+    <metric>z1-initial</metric>
+    <metric>z2-initial</metric>
+    <metric>z3-initial</metric>
+    <metric>p-initial</metric>
+    <metric>e-initial</metric>
+    <metric>m-zones-pre</metric>
+    <metric>t-zones-pre</metric>
+    <metric>w-zones-pre</metric>
+    <metric>r-zones-pre</metric>
+    <metric>f-zones-pre</metric>
+    <metric>m-zones-beg</metric>
+    <metric>t-zones-beg</metric>
+    <metric>w-zones-beg</metric>
+    <metric>r-zones-beg</metric>
+    <metric>f-zones-beg</metric>
+    <metric>m-zones-mid</metric>
+    <metric>t-zones-mid</metric>
+    <metric>w-zones-mid</metric>
+    <metric>r-zones-mid</metric>
+    <metric>f-zones-mid</metric>
+    <metric>m-zones-post</metric>
+    <metric>t-zones-post</metric>
+    <metric>w-zones-post</metric>
+    <metric>r-zones-post</metric>
+    <metric>f-zones-post</metric>
+    <metric>zone-to-zone</metric>
+    <metric>avg-listeria-transferred</metric>
+    <metric>zone-to-patch</metric>
+    <metric>condensation-drip</metric>
+    <metric>introduction-zone4</metric>
+    <metric>patch-to-patch</metric>
+    <metric>introduction-food</metric>
+    <metric>sum-food-load</metric>
+    <metric>sum-food-transfer</metric>
+    <metric>random-event</metric>
+    <metric>employee-fcs</metric>
+    <metric>nfcs-fcs</metric>
+    <metric>total-contam-events</metric>
+    <metric>m-random-event</metric>
+    <metric>t-random-event</metric>
+    <metric>w-random-event</metric>
+    <metric>r-random-event</metric>
+    <metric>f-random-event</metric>
+    <metric>median-z1-time</metric>
+    <metric>median-z2-time</metric>
+    <metric>median-z3-time</metric>
+    <metric>median-e-time</metric>
+    <metric>median-p-time</metric>
+    <metric>median-fwj-time</metric>
+    <metric>median-d-time</metric>
+    <metric>median-z1-max-contam-bout</metric>
+    <metric>median-z2-max-contam-bout</metric>
+    <metric>median-z3-max-contam-bout</metric>
+    <metric>median-e-max-contam-bout</metric>
+    <metric>median-p-max-contam-bout</metric>
+    <metric>median-d-max-contam-bout</metric>
+    <metric>median-fwj-max-contam-bout</metric>
+    <metric>temporary-niches</metric>
+    <metric>p-temp-niches</metric>
+    <metric>z1-temp-niches</metric>
+    <metric>z2-temp-niches</metric>
+    <metric>z3-temp-niches</metric>
+    <metric>z1-contacts</metric>
+    <metric>z2-contacts</metric>
+    <metric>z3-contacts</metric>
+    <metric>z1-transfers</metric>
+    <metric>z2-transfers</metric>
+    <metric>z3-transfers</metric>
+    <metric>z-sample-beg-prev</metric>
+    <metric>z-sample-mid-prev</metric>
+    <metric>z-sample-post-prev</metric>
+    <metric>z1-prev</metric>
+    <metric>z2-prev</metric>
+    <metric>z3-prev</metric>
+    <metric>m-z-all</metric>
+    <metric>m-z-all-employees</metric>
+    <metric>t-z-all</metric>
+    <metric>t-z-all-employees</metric>
+    <metric>w-z-all</metric>
+    <metric>w-z-all-employees</metric>
+    <metric>mid-all</metric>
+    <metric>mid-all-employees</metric>
+    <metric>z1-all</metric>
+    <metric>z1-all-employees</metric>
+    <metric>z2-all</metric>
+    <metric>z2-all-employees</metric>
+    <metric>z3-all</metric>
+    <metric>z3-all-employees</metric>
+    <metric>z1-conc-time-list</metric>
+    <metric>z1-conc-time-cleanable-list</metric>
+    <metric>z1-conc-time-uncleanable-list</metric>
+    <metric>z2-conc-time-list</metric>
+    <metric>z2-conc-time-cleanable-list</metric>
+    <metric>z2-conc-time-uncleanable-list</metric>
+    <metric>z3-conc-time-list</metric>
+    <metric>z3-conc-time-cleanable-list</metric>
+    <metric>z3-conc-time-uncleanable-list</metric>
+    <metric>cleaning-all</metric>
+    <metric>cleaning-all-employees</metric>
+    <metric>drying-all</metric>
+    <metric>drying-all-employees</metric>
+    <metric>loading-all</metric>
+    <metric>loading-all-employees</metric>
+    <metric>reject-all</metric>
+    <metric>reject-all-employees</metric>
+    <metric>sorting-all</metric>
+    <metric>sorting-all-employees</metric>
+    <metric>tray-packing-all</metric>
+    <metric>tray-packing-all-employees</metric>
+    <metric>other-all</metric>
+    <metric>other-all-employees</metric>
+    <metric>cleaning-conc-list</metric>
+    <metric>drying-conc-list</metric>
+    <metric>loading-conc-list</metric>
+    <metric>reject-conc-list</metric>
+    <metric>sorting-conc-list</metric>
+    <metric>tray-packing-conc-list</metric>
+    <metric>other-conc-list</metric>
+    <metric>cleaning-conc-time-list</metric>
+    <metric>drying-conc-time-list</metric>
+    <metric>loading-conc-time-list</metric>
+    <metric>reject-conc-time-list</metric>
+    <metric>sorting-conc-time-list</metric>
+    <metric>tray-packing-conc-time-list</metric>
+    <metric>other-conc-time-list</metric>
+    <metric>cleaning-conc-time-cleanable-list</metric>
+    <metric>drying-conc-time-cleanable-list</metric>
+    <metric>loading-conc-time-cleanable-list</metric>
+    <metric>reject-conc-time-cleanable-list</metric>
+    <metric>sorting-conc-time-cleanable-list</metric>
+    <metric>other-conc-time-cleanable-list</metric>
+    <metric>cleaning-conc-time-uncleanable-list</metric>
+    <metric>drying-conc-time-uncleanable-list</metric>
+    <metric>loading-conc-time-uncleanable-list</metric>
+    <metric>reject-conc-time-uncleanable-list</metric>
+    <metric>sorting-conc-time-uncleanable-list</metric>
+    <metric>other-conc-time-uncleanable-list</metric>
+    <metric>cleaning-niche-time-list</metric>
+    <metric>drying-niche-time-list</metric>
+    <metric>loading-niche-time-list</metric>
+    <metric>reject-niche-time-list</metric>
+    <metric>sorting-niche-time-list</metric>
+    <metric>tray-packing-niche-time-list</metric>
+    <metric>other-niche-time-list</metric>
+    <metric>cleaning-niche-length-list</metric>
+    <metric>drying-niche-length-list</metric>
+    <metric>loading-niche-length-list</metric>
+    <metric>reject-niche-length-list</metric>
+    <metric>sorting-niche-length-list</metric>
+    <metric>tray-packing-niche-length-list</metric>
+    <metric>other-niche-length-list</metric>
+    <metric>w2wed-count-list</metric>
+    <metric>w2wed-conc-list</metric>
+    <metric>w2wed-time-contaminated-list</metric>
+    <metric>w2wed-max-contam-bout-list</metric>
+    <metric>w2wed-contacts-list</metric>
+    <metric>w2wed-transfers-list</metric>
+    <metric>cleaning-w2wed-count-list</metric>
+    <metric>drying-w2wed-count-list</metric>
+    <metric>loading-w2wed-count-list</metric>
+    <metric>reject-w2wed-count-list</metric>
+    <metric>sorting-w2wed-count-list</metric>
+    <metric>tray-packing-w2wed-count-list</metric>
+    <metric>other-w2wed-count-list</metric>
+    <metric>z1-w2wed-count-list</metric>
+    <metric>z2-w2wed-count-list</metric>
+    <metric>z3-w2wed-count-list</metric>
+    <metric>z1-w2wed-pre-count-list</metric>
+    <metric>z2-w2wed-pre-count-list</metric>
+    <metric>z3-w2wed-pre-count-list</metric>
+    <metric>z1-w2wed-beg-count-list</metric>
+    <metric>z2-w2wed-beg-count-list</metric>
+    <metric>z3-w2wed-beg-count-list</metric>
+    <metric>z1-w2wed-end-count-list</metric>
+    <metric>z2-w2wed-end-count-list</metric>
+    <metric>z3-w2wed-end-count-list</metric>
+    <metric>cleanable-w2wed-count-list</metric>
+    <metric>uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-count-list</metric>
+    <metric>drying-z1-cleanable-w2wed-count-list</metric>
+    <metric>loading-z1-cleanable-w2wed-count-list</metric>
+    <metric>reject-z1-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-count-list</metric>
+    <metric>other-z1-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-count-list</metric>
+    <metric>drying-z2-cleanable-w2wed-count-list</metric>
+    <metric>loading-z2-cleanable-w2wed-count-list</metric>
+    <metric>reject-z2-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-count-list</metric>
+    <metric>other-z2-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-count-list</metric>
+    <metric>drying-z3-cleanable-w2wed-count-list</metric>
+    <metric>loading-z3-cleanable-w2wed-count-list</metric>
+    <metric>reject-z3-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-count-list</metric>
+    <metric>other-z3-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-count-list</metric>
+    <metric>other-z1-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-count-list</metric>
+    <metric>other-z2-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-count-list</metric>
+    <metric>other-z3-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-w2wed-conc-list</metric>
+    <metric>drying-w2wed-conc-list</metric>
+    <metric>loading-w2wed-conc-list</metric>
+    <metric>reject-w2wed-conc-list</metric>
+    <metric>sorting-w2wed-conc-list</metric>
+    <metric>tray-packing-w2wed-conc-list</metric>
+    <metric>other-w2wed-conc-list</metric>
+    <metric>z1-w2wed-conc-list</metric>
+    <metric>z2-w2wed-conc-list</metric>
+    <metric>z3-w2wed-conc-list</metric>
+    <metric>z1-w2wed-pre-conc-list</metric>
+    <metric>z2-w2wed-pre-conc-list</metric>
+    <metric>z3-w2wed-pre-conc-list</metric>
+    <metric>z1-w2wed-beg-conc-list</metric>
+    <metric>z2-w2wed-beg-conc-list</metric>
+    <metric>z3-w2wed-beg-conc-list</metric>
+    <metric>z1-w2wed-end-conc-list</metric>
+    <metric>z2-w2wed-end-conc-list</metric>
+    <metric>z3-w2wed-end-conc-list</metric>
+    <metric>cleanable-w2wed-conc-list</metric>
+    <metric>uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-conc-list</metric>
+    <metric>other-z1-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-conc-list</metric>
+    <metric>other-z2-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-conc-list</metric>
+    <metric>other-z3-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-w2wed-prev</metric>
+    <metric>drying-w2wed-prev</metric>
+    <metric>loading-w2wed-prev</metric>
+    <metric>reject-w2wed-prev</metric>
+    <metric>sorting-w2wed-prev</metric>
+    <metric>tray-packing-w2wed-prev</metric>
+    <metric>other-w2wed-prev</metric>
+    <metric>z1-w2wed-prev</metric>
+    <metric>z2-w2wed-prev</metric>
+    <metric>z3-w2wed-prev</metric>
+    <metric>z1-w2wed-pre-prev</metric>
+    <metric>z2-w2wed-pre-prev</metric>
+    <metric>z3-w2wed-pre-prev</metric>
+    <metric>z1-w2wed-beg-prev</metric>
+    <metric>z2-w2wed-beg-prev</metric>
+    <metric>z3-w2wed-beg-prev</metric>
+    <metric>z1-w2wed-end-prev</metric>
+    <metric>z2-w2wed-end-prev</metric>
+    <metric>z3-w2wed-end-prev</metric>
+    <metric>cleanable-w2wed-prev</metric>
+    <metric>uncleanable-w2wed-prev</metric>
+    <metric>cleaning-cleanable-w2wed-prev</metric>
+    <metric>drying-cleanable-w2wed-prev</metric>
+    <metric>loading-cleanable-w2wed-prev</metric>
+    <metric>reject-cleanable-w2wed-prev</metric>
+    <metric>sorting-cleanable-w2wed-prev</metric>
+    <metric>other-cleanable-w2wed-prev</metric>
+    <metric>cleaning-uncleanable-w2wed-prev</metric>
+    <metric>drying-uncleanable-w2wed-prev</metric>
+    <metric>loading-uncleanable-w2wed-prev</metric>
+    <metric>reject-uncleanable-w2wed-prev</metric>
+    <metric>sorting-uncleanable-w2wed-prev</metric>
+    <metric>other-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-w2wed-prev</metric>
+    <metric>drying-z1-w2wed-prev</metric>
+    <metric>loading-z1-w2wed-prev</metric>
+    <metric>reject-z1-w2wed-prev</metric>
+    <metric>sorting-z1-w2wed-prev</metric>
+    <metric>other-z1-w2wed-prev</metric>
+    <metric>cleaning-z2-w2wed-prev</metric>
+    <metric>drying-z2-w2wed-prev</metric>
+    <metric>loading-z2-w2wed-prev</metric>
+    <metric>reject-z2-w2wed-prev</metric>
+    <metric>sorting-z2-w2wed-prev</metric>
+    <metric>other-z2-w2wed-prev</metric>
+    <metric>cleaning-z3-w2wed-prev</metric>
+    <metric>drying-z3-w2wed-prev</metric>
+    <metric>loading-z3-w2wed-prev</metric>
+    <metric>reject-z3-w2wed-prev</metric>
+    <metric>sorting-z3-w2wed-prev</metric>
+    <metric>other-z3-w2wed-prev</metric>
+    <metric>cleanable-z1-w2wed-prev</metric>
+    <metric>cleanable-z2-w2wed-prev</metric>
+    <metric>cleanable-z3-w2wed-prev</metric>
+    <metric>uncleanable-z1-w2wed-prev</metric>
+    <metric>uncleanable-z2-w2wed-prev</metric>
+    <metric>uncleanable-z3-w2wed-prev</metric>
+    <metric>cleaning-z1-cleanable-w2wed-prev</metric>
+    <metric>drying-z1-cleanable-w2wed-prev</metric>
+    <metric>loading-z1-cleanable-w2wed-prev</metric>
+    <metric>reject-z1-cleanable-w2wed-prev</metric>
+    <metric>sorting-z1-cleanable-w2wed-prev</metric>
+    <metric>other-z1-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-cleanable-w2wed-prev</metric>
+    <metric>drying-z2-cleanable-w2wed-prev</metric>
+    <metric>loading-z2-cleanable-w2wed-prev</metric>
+    <metric>reject-z2-cleanable-w2wed-prev</metric>
+    <metric>sorting-z2-cleanable-w2wed-prev</metric>
+    <metric>other-z2-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-cleanable-w2wed-prev</metric>
+    <metric>drying-z3-cleanable-w2wed-prev</metric>
+    <metric>loading-z3-cleanable-w2wed-prev</metric>
+    <metric>reject-z3-cleanable-w2wed-prev</metric>
+    <metric>sorting-z3-cleanable-w2wed-prev</metric>
+    <metric>other-z3-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-prev</metric>
+    <metric>drying-z1-uncleanable-w2wed-prev</metric>
+    <metric>loading-z1-uncleanable-w2wed-prev</metric>
+    <metric>reject-z1-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z1-uncleanable-w2wed-prev</metric>
+    <metric>other-z1-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-prev</metric>
+    <metric>drying-z2-uncleanable-w2wed-prev</metric>
+    <metric>loading-z2-uncleanable-w2wed-prev</metric>
+    <metric>reject-z2-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z2-uncleanable-w2wed-prev</metric>
+    <metric>other-z2-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-prev</metric>
+    <metric>drying-z3-uncleanable-w2wed-prev</metric>
+    <metric>loading-z3-uncleanable-w2wed-prev</metric>
+    <metric>reject-z3-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z3-uncleanable-w2wed-prev</metric>
+    <metric>other-z3-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-total-prev</metric>
+    <metric>drying-total-prev</metric>
+    <metric>loading-total-prev</metric>
+    <metric>reject-total-prev</metric>
+    <metric>sorting-total-prev</metric>
+    <metric>tray-packing-total-prev</metric>
+    <metric>other-total-prev</metric>
+    <metric>concentration-list</metric>
+    <metric>time-contaminated-list</metric>
+    <metric>max-contam-bout-list</metric>
+    <metric>contacts-list</metric>
+    <metric>transfers-list</metric>
+    <metric>temp-niche-list</metric>
+    <metric>niches-estab-list</metric>
+    <metric>food-cont-list</metric>
+    <metric>zone4-cont-list</metric>
+    <metric>random-cont-list</metric>
+    <metric>random-event-list</metric>
+    <metric>cluster-conc-mid-mon-list</metric>
+    <metric>cluster-conc-mid-tue-list</metric>
+    <metric>cluster-conc-mid-wed-list</metric>
+    <metric>cluster-conc-mid-thu-list</metric>
+    <metric>cluster-conc-mid-fri-list</metric>
+    <metric>cluster-conc-mid-mon-median-list</metric>
+    <metric>cluster-conc-mid-tue-median-list</metric>
+    <metric>cluster-conc-mid-wed-median-list</metric>
+    <metric>cluster-conc-mid-thu-median-list</metric>
+    <metric>cluster-conc-mid-fri-median-list</metric>
+    <metric>cluster-conc-mid-mon-mean-list</metric>
+    <metric>cluster-conc-mid-tue-mean-list</metric>
+    <metric>cluster-conc-mid-wed-mean-list</metric>
+    <metric>cluster-conc-mid-thu-mean-list</metric>
+    <metric>cluster-conc-mid-fri-mean-list</metric>
+    <metric>m-z1-pre</metric>
+    <metric>t-z1-pre</metric>
+    <metric>w-z1-pre</metric>
+    <metric>r-z1-pre</metric>
+    <metric>f-z1-pre</metric>
+    <metric>m-z2-pre</metric>
+    <metric>t-z2-pre</metric>
+    <metric>w-z2-pre</metric>
+    <metric>r-z2-pre</metric>
+    <metric>f-z2-pre</metric>
+    <metric>m-z3-pre</metric>
+    <metric>t-z3-pre</metric>
+    <metric>w-z3-pre</metric>
+    <metric>r-z3-pre</metric>
+    <metric>f-z3-pre</metric>
+    <metric>m-p-pre</metric>
+    <metric>t-p-pre</metric>
+    <metric>w-p-pre</metric>
+    <metric>r-p-pre</metric>
+    <metric>f-p-pre</metric>
+    <metric>m-e-pre</metric>
+    <metric>t-e-pre</metric>
+    <metric>w-e-pre</metric>
+    <metric>r-e-pre</metric>
+    <metric>f-e-pre</metric>
+    <metric>m-z1-beg</metric>
+    <metric>t-z1-beg</metric>
+    <metric>w-z1-beg</metric>
+    <metric>r-z1-beg</metric>
+    <metric>f-z1-beg</metric>
+    <metric>m-z2-beg</metric>
+    <metric>t-z2-beg</metric>
+    <metric>w-z2-beg</metric>
+    <metric>r-z2-beg</metric>
+    <metric>f-z2-beg</metric>
+    <metric>m-z3-beg</metric>
+    <metric>t-z3-beg</metric>
+    <metric>w-z3-beg</metric>
+    <metric>r-z3-beg</metric>
+    <metric>f-z3-beg</metric>
+    <metric>m-p-beg</metric>
+    <metric>t-p-beg</metric>
+    <metric>w-p-beg</metric>
+    <metric>r-p-beg</metric>
+    <metric>f-p-beg</metric>
+    <metric>m-e-beg</metric>
+    <metric>t-e-beg</metric>
+    <metric>w-e-beg</metric>
+    <metric>r-e-beg</metric>
+    <metric>f-e-beg</metric>
+    <metric>m-z1-mid</metric>
+    <metric>t-z1-mid</metric>
+    <metric>w-z1-mid</metric>
+    <metric>r-z1-mid</metric>
+    <metric>f-z1-mid</metric>
+    <metric>m-z2-mid</metric>
+    <metric>t-z2-mid</metric>
+    <metric>w-z2-mid</metric>
+    <metric>r-z2-mid</metric>
+    <metric>f-z2-mid</metric>
+    <metric>m-z3-mid</metric>
+    <metric>t-z3-mid</metric>
+    <metric>w-z3-mid</metric>
+    <metric>r-z3-mid</metric>
+    <metric>f-z3-mid</metric>
+    <metric>m-p-mid</metric>
+    <metric>t-p-mid</metric>
+    <metric>w-p-mid</metric>
+    <metric>r-p-mid</metric>
+    <metric>f-p-mid</metric>
+    <metric>m-e-mid</metric>
+    <metric>t-e-mid</metric>
+    <metric>w-e-mid</metric>
+    <metric>r-e-mid</metric>
+    <metric>f-e-mid</metric>
+    <metric>m-z1-post</metric>
+    <metric>t-z1-post</metric>
+    <metric>w-z1-post</metric>
+    <metric>r-z1-post</metric>
+    <metric>f-z1-post</metric>
+    <metric>m-z2-post</metric>
+    <metric>t-z2-post</metric>
+    <metric>w-z2-post</metric>
+    <metric>r-z2-post</metric>
+    <metric>f-z2-post</metric>
+    <metric>m-z3-post</metric>
+    <metric>t-z3-post</metric>
+    <metric>w-z3-post</metric>
+    <metric>r-z3-post</metric>
+    <metric>f-z3-post</metric>
+    <metric>m-p-post</metric>
+    <metric>t-p-post</metric>
+    <metric>w-p-post</metric>
+    <metric>r-p-post</metric>
+    <metric>f-p-post</metric>
+    <metric>m-e-post</metric>
+    <metric>t-e-post</metric>
+    <metric>w-e-post</metric>
+    <metric>r-e-post</metric>
+    <metric>f-e-post</metric>
+    <metric>crack</metric>
+    <metric>m-z1-conc-pre</metric>
+    <metric>t-z1-conc-pre</metric>
+    <metric>w-z1-conc-pre</metric>
+    <metric>r-z1-conc-pre</metric>
+    <metric>f-z1-conc-pre</metric>
+    <metric>m-z2-conc-pre</metric>
+    <metric>t-z2-conc-pre</metric>
+    <metric>w-z2-conc-pre</metric>
+    <metric>r-z2-conc-pre</metric>
+    <metric>f-z2-conc-pre</metric>
+    <metric>m-z3-conc-pre</metric>
+    <metric>t-z3-conc-pre</metric>
+    <metric>w-z3-conc-pre</metric>
+    <metric>r-z3-conc-pre</metric>
+    <metric>f-z3-conc-pre</metric>
+    <metric>m-p-conc-pre</metric>
+    <metric>t-p-conc-pre</metric>
+    <metric>w-p-conc-pre</metric>
+    <metric>r-p-conc-pre</metric>
+    <metric>f-p-conc-pre</metric>
+    <metric>m-e-conc-pre</metric>
+    <metric>t-e-conc-pre</metric>
+    <metric>w-e-conc-pre</metric>
+    <metric>r-e-conc-pre</metric>
+    <metric>f-e-conc-pre</metric>
+    <metric>m-z1-conc-mid</metric>
+    <metric>t-z1-conc-mid</metric>
+    <metric>w-z1-conc-mid</metric>
+    <metric>r-z1-conc-mid</metric>
+    <metric>f-z1-conc-mid</metric>
+    <metric>m-z2-conc-mid</metric>
+    <metric>t-z2-conc-mid</metric>
+    <metric>w-z2-conc-mid</metric>
+    <metric>r-z2-conc-mid</metric>
+    <metric>f-z2-conc-mid</metric>
+    <metric>m-z3-conc-mid</metric>
+    <metric>t-z3-conc-mid</metric>
+    <metric>w-z3-conc-mid</metric>
+    <metric>r-z3-conc-mid</metric>
+    <metric>f-z3-conc-mid</metric>
+    <metric>m-p-conc-mid</metric>
+    <metric>t-p-conc-mid</metric>
+    <metric>w-p-conc-mid</metric>
+    <metric>r-p-conc-mid</metric>
+    <metric>f-p-conc-mid</metric>
+    <metric>m-e-conc-mid</metric>
+    <metric>t-e-conc-mid</metric>
+    <metric>w-e-conc-mid</metric>
+    <metric>r-e-conc-mid</metric>
+    <metric>f-e-conc-mid</metric>
+    <metric>m-z1-conc-post</metric>
+    <metric>t-z1-conc-post</metric>
+    <metric>w-z1-conc-post</metric>
+    <metric>r-z1-conc-post</metric>
+    <metric>f-z1-conc-post</metric>
+    <metric>m-z2-conc-post</metric>
+    <metric>t-z2-conc-post</metric>
+    <metric>w-z2-conc-post</metric>
+    <metric>r-z2-conc-post</metric>
+    <metric>f-z2-conc-post</metric>
+    <metric>m-z3-conc-post</metric>
+    <metric>t-z3-conc-post</metric>
+    <metric>w-z3-conc-post</metric>
+    <metric>r-z3-conc-post</metric>
+    <metric>f-z3-conc-post</metric>
+    <metric>m-p-conc-post</metric>
+    <metric>t-p-conc-post</metric>
+    <metric>w-p-conc-post</metric>
+    <metric>r-p-conc-post</metric>
+    <metric>f-p-conc-post</metric>
+    <metric>m-e-conc-post</metric>
+    <metric>t-e-conc-post</metric>
+    <metric>w-e-conc-post</metric>
+    <metric>r-e-conc-post</metric>
+    <metric>f-e-conc-post</metric>
+    <metric>m-z-sample-prev</metric>
+    <metric>t-z-sample-prev</metric>
+    <metric>w-z-sample-prev</metric>
+    <metric>r-z-sample-prev</metric>
+    <metric>f-z-sample-prev</metric>
+    <metric>m-z-prev</metric>
+    <metric>t-z-prev</metric>
+    <metric>w-z-prev</metric>
+    <metric>r-z-prev</metric>
+    <metric>f-z-prev</metric>
+    <metric>fcs-prev</metric>
+    <metric>total-fcs</metric>
+    <metric>nfcs-prev</metric>
+    <metric>total-nfcs</metric>
+    <metric>m-zone-0b</metric>
+    <metric>t-zone-0b</metric>
+    <metric>w-zone-0b</metric>
+    <metric>r-zone-0b</metric>
+    <metric>f-zone-0b</metric>
+    <metric>m-zone-3b</metric>
+    <metric>t-zone-3b</metric>
+    <metric>w-zone-3b</metric>
+    <metric>r-zone-3b</metric>
+    <metric>f-zone-3b</metric>
+    <metric>m-zone-4b</metric>
+    <metric>t-zone-4b</metric>
+    <metric>w-zone-4b</metric>
+    <metric>r-zone-4b</metric>
+    <metric>f-zone-4b</metric>
+    <metric>m-zone-20b</metric>
+    <metric>t-zone-20b</metric>
+    <metric>w-zone-20b</metric>
+    <metric>r-zone-20b</metric>
+    <metric>f-zone-20b</metric>
+    <metric>m-zone-26b</metric>
+    <metric>t-zone-26b</metric>
+    <metric>w-zone-26b</metric>
+    <metric>r-zone-26b</metric>
+    <metric>f-zone-26b</metric>
+    <metric>m-zone-29b</metric>
+    <metric>t-zone-29b</metric>
+    <metric>w-zone-29b</metric>
+    <metric>r-zone-29b</metric>
+    <metric>f-zone-29b</metric>
+    <metric>m-zone-30b</metric>
+    <metric>t-zone-30b</metric>
+    <metric>w-zone-30b</metric>
+    <metric>r-zone-30b</metric>
+    <metric>f-zone-30b</metric>
+    <metric>m-zone-31b</metric>
+    <metric>t-zone-31b</metric>
+    <metric>w-zone-31b</metric>
+    <metric>r-zone-31b</metric>
+    <metric>f-zone-31b</metric>
+    <metric>m-zone-38b</metric>
+    <metric>t-zone-38b</metric>
+    <metric>w-zone-38b</metric>
+    <metric>r-zone-38b</metric>
+    <metric>f-zone-38b</metric>
+    <metric>m-zone-78b</metric>
+    <metric>t-zone-78b</metric>
+    <metric>w-zone-78b</metric>
+    <metric>r-zone-78b</metric>
+    <metric>f-zone-78b</metric>
+    <metric>m-zone-116b</metric>
+    <metric>t-zone-116b</metric>
+    <metric>w-zone-116b</metric>
+    <metric>r-zone-116b</metric>
+    <metric>f-zone-116b</metric>
+    <metric>m-zone-134b</metric>
+    <metric>t-zone-134b</metric>
+    <metric>w-zone-134b</metric>
+    <metric>r-zone-134b</metric>
+    <metric>f-zone-134b</metric>
+    <metric>m-zone-166b</metric>
+    <metric>t-zone-166b</metric>
+    <metric>w-zone-166b</metric>
+    <metric>r-zone-166b</metric>
+    <metric>f-zone-166b</metric>
+    <metric>m-zone-186b</metric>
+    <metric>t-zone-186b</metric>
+    <metric>w-zone-186b</metric>
+    <metric>r-zone-186b</metric>
+    <metric>f-zone-186b</metric>
+    <metric>m-zone-187b</metric>
+    <metric>t-zone-187b</metric>
+    <metric>w-zone-187b</metric>
+    <metric>r-zone-187b</metric>
+    <metric>f-zone-187b</metric>
+    <metric>m-zone-188b</metric>
+    <metric>t-zone-188b</metric>
+    <metric>w-zone-188b</metric>
+    <metric>r-zone-188b</metric>
+    <metric>f-zone-188b</metric>
+    <metric>m-zone-190b</metric>
+    <metric>t-zone-190b</metric>
+    <metric>w-zone-190b</metric>
+    <metric>r-zone-190b</metric>
+    <metric>f-zone-190b</metric>
+    <metric>m-zone-191b</metric>
+    <metric>t-zone-191b</metric>
+    <metric>w-zone-191b</metric>
+    <metric>r-zone-191b</metric>
+    <metric>f-zone-191b</metric>
+    <metric>m-zone-193b</metric>
+    <metric>t-zone-193b</metric>
+    <metric>w-zone-193b</metric>
+    <metric>r-zone-193b</metric>
+    <metric>f-zone-193b</metric>
+    <metric>m-zone-194b</metric>
+    <metric>t-zone-194b</metric>
+    <metric>w-zone-194b</metric>
+    <metric>r-zone-194b</metric>
+    <metric>f-zone-194b</metric>
+    <metric>m-zone-195b</metric>
+    <metric>t-zone-195b</metric>
+    <metric>w-zone-195b</metric>
+    <metric>r-zone-195b</metric>
+    <metric>f-zone-195b</metric>
+    <metric>m-zone-196b</metric>
+    <metric>t-zone-196b</metric>
+    <metric>w-zone-196b</metric>
+    <metric>r-zone-196b</metric>
+    <metric>f-zone-196b</metric>
+    <metric>m-zone-197b</metric>
+    <metric>t-zone-197b</metric>
+    <metric>w-zone-197b</metric>
+    <metric>r-zone-197b</metric>
+    <metric>f-zone-197b</metric>
+    <metric>m-zone-198b</metric>
+    <metric>t-zone-198b</metric>
+    <metric>w-zone-198b</metric>
+    <metric>r-zone-198b</metric>
+    <metric>f-zone-198b</metric>
+    <metric>m-zone-199b</metric>
+    <metric>t-zone-199b</metric>
+    <metric>w-zone-199b</metric>
+    <metric>r-zone-199b</metric>
+    <metric>f-zone-199b</metric>
+    <metric>m-zone-200b</metric>
+    <metric>t-zone-200b</metric>
+    <metric>w-zone-200b</metric>
+    <metric>r-zone-200b</metric>
+    <metric>f-zone-200b</metric>
+    <metric>m-zone-201b</metric>
+    <metric>t-zone-201b</metric>
+    <metric>w-zone-201b</metric>
+    <metric>r-zone-201b</metric>
+    <metric>f-zone-201b</metric>
+    <metric>m-zone-202b</metric>
+    <metric>t-zone-202b</metric>
+    <metric>w-zone-202b</metric>
+    <metric>r-zone-202b</metric>
+    <metric>f-zone-202b</metric>
+    <metric>m-zone-203b</metric>
+    <metric>t-zone-203b</metric>
+    <metric>w-zone-203b</metric>
+    <metric>r-zone-203b</metric>
+    <metric>f-zone-203b</metric>
+    <metric>m-zone-204b</metric>
+    <metric>t-zone-204b</metric>
+    <metric>w-zone-204b</metric>
+    <metric>r-zone-204b</metric>
+    <metric>f-zone-204b</metric>
+    <metric>m-zone-205b</metric>
+    <metric>t-zone-205b</metric>
+    <metric>w-zone-205b</metric>
+    <metric>r-zone-205b</metric>
+    <metric>f-zone-205b</metric>
+    <metric>m-zone-206b</metric>
+    <metric>t-zone-206b</metric>
+    <metric>w-zone-206b</metric>
+    <metric>r-zone-206b</metric>
+    <metric>f-zone-206b</metric>
+    <metric>m-zone-207b</metric>
+    <metric>t-zone-207b</metric>
+    <metric>w-zone-207b</metric>
+    <metric>r-zone-207b</metric>
+    <metric>f-zone-207b</metric>
+    <metric>m-zone-208b</metric>
+    <metric>t-zone-208b</metric>
+    <metric>w-zone-208b</metric>
+    <metric>r-zone-208b</metric>
+    <metric>f-zone-208b</metric>
+    <metric>m-zone-209b</metric>
+    <metric>t-zone-209b</metric>
+    <metric>w-zone-209b</metric>
+    <metric>r-zone-209b</metric>
+    <metric>f-zone-209b</metric>
+    <metric>m-zone-210b</metric>
+    <metric>t-zone-210b</metric>
+    <metric>w-zone-210b</metric>
+    <metric>r-zone-210b</metric>
+    <metric>f-zone-210b</metric>
+    <metric>m-zone-211b</metric>
+    <metric>t-zone-211b</metric>
+    <metric>w-zone-211b</metric>
+    <metric>r-zone-211b</metric>
+    <metric>f-zone-211b</metric>
+    <metric>m-zone-212b</metric>
+    <metric>t-zone-212b</metric>
+    <metric>w-zone-212b</metric>
+    <metric>r-zone-212b</metric>
+    <metric>f-zone-212b</metric>
+    <metric>m-zone-213b</metric>
+    <metric>t-zone-213b</metric>
+    <metric>w-zone-213b</metric>
+    <metric>r-zone-213b</metric>
+    <metric>f-zone-213b</metric>
+    <metric>m-zone-214b</metric>
+    <metric>t-zone-214b</metric>
+    <metric>w-zone-214b</metric>
+    <metric>r-zone-214b</metric>
+    <metric>f-zone-214b</metric>
+    <metric>m-zone-215b</metric>
+    <metric>t-zone-215b</metric>
+    <metric>w-zone-215b</metric>
+    <metric>r-zone-215b</metric>
+    <metric>f-zone-215b</metric>
+    <metric>m-zone-216b</metric>
+    <metric>t-zone-216b</metric>
+    <metric>w-zone-216b</metric>
+    <metric>r-zone-216b</metric>
+    <metric>f-zone-216b</metric>
+    <metric>m-zone-217b</metric>
+    <metric>t-zone-217b</metric>
+    <metric>w-zone-217b</metric>
+    <metric>r-zone-217b</metric>
+    <metric>f-zone-217b</metric>
+    <metric>m-zone-218b</metric>
+    <metric>t-zone-218b</metric>
+    <metric>w-zone-218b</metric>
+    <metric>r-zone-218b</metric>
+    <metric>f-zone-218b</metric>
+    <metric>m-zone-219b</metric>
+    <metric>t-zone-219b</metric>
+    <metric>w-zone-219b</metric>
+    <metric>r-zone-219b</metric>
+    <metric>f-zone-219b</metric>
+    <metric>m-zone-220b</metric>
+    <metric>t-zone-220b</metric>
+    <metric>w-zone-220b</metric>
+    <metric>r-zone-220b</metric>
+    <metric>f-zone-220b</metric>
+    <metric>m-zone-221b</metric>
+    <metric>t-zone-221b</metric>
+    <metric>w-zone-221b</metric>
+    <metric>r-zone-221b</metric>
+    <metric>f-zone-221b</metric>
+    <metric>m-zone-0e</metric>
+    <metric>t-zone-0e</metric>
+    <metric>w-zone-0e</metric>
+    <metric>r-zone-0e</metric>
+    <metric>f-zone-0e</metric>
+    <metric>m-zone-3e</metric>
+    <metric>t-zone-3e</metric>
+    <metric>w-zone-3e</metric>
+    <metric>r-zone-3e</metric>
+    <metric>f-zone-3e</metric>
+    <metric>m-zone-4e</metric>
+    <metric>t-zone-4e</metric>
+    <metric>w-zone-4e</metric>
+    <metric>r-zone-4e</metric>
+    <metric>f-zone-4e</metric>
+    <metric>m-zone-20e</metric>
+    <metric>t-zone-20e</metric>
+    <metric>w-zone-20e</metric>
+    <metric>r-zone-20e</metric>
+    <metric>f-zone-20e</metric>
+    <metric>m-zone-26e</metric>
+    <metric>t-zone-26e</metric>
+    <metric>w-zone-26e</metric>
+    <metric>r-zone-26e</metric>
+    <metric>f-zone-26e</metric>
+    <metric>m-zone-29e</metric>
+    <metric>t-zone-29e</metric>
+    <metric>w-zone-29e</metric>
+    <metric>r-zone-29e</metric>
+    <metric>f-zone-29e</metric>
+    <metric>m-zone-30e</metric>
+    <metric>t-zone-30e</metric>
+    <metric>w-zone-30e</metric>
+    <metric>r-zone-30e</metric>
+    <metric>f-zone-30e</metric>
+    <metric>m-zone-31e</metric>
+    <metric>t-zone-31e</metric>
+    <metric>w-zone-31e</metric>
+    <metric>r-zone-31e</metric>
+    <metric>f-zone-31e</metric>
+    <metric>m-zone-38e</metric>
+    <metric>t-zone-38e</metric>
+    <metric>w-zone-38e</metric>
+    <metric>r-zone-38e</metric>
+    <metric>f-zone-38e</metric>
+    <metric>m-zone-78e</metric>
+    <metric>t-zone-78e</metric>
+    <metric>w-zone-78e</metric>
+    <metric>r-zone-78e</metric>
+    <metric>f-zone-78e</metric>
+    <metric>m-zone-116e</metric>
+    <metric>t-zone-116e</metric>
+    <metric>w-zone-116e</metric>
+    <metric>r-zone-116e</metric>
+    <metric>f-zone-116e</metric>
+    <metric>m-zone-134e</metric>
+    <metric>t-zone-134e</metric>
+    <metric>w-zone-134e</metric>
+    <metric>r-zone-134e</metric>
+    <metric>f-zone-134e</metric>
+    <metric>m-zone-166e</metric>
+    <metric>t-zone-166e</metric>
+    <metric>w-zone-166e</metric>
+    <metric>r-zone-166e</metric>
+    <metric>f-zone-166e</metric>
+    <metric>m-zone-186e</metric>
+    <metric>t-zone-186e</metric>
+    <metric>w-zone-186e</metric>
+    <metric>r-zone-186e</metric>
+    <metric>f-zone-186e</metric>
+    <metric>m-zone-187e</metric>
+    <metric>t-zone-187e</metric>
+    <metric>w-zone-187e</metric>
+    <metric>r-zone-187e</metric>
+    <metric>f-zone-187e</metric>
+    <metric>m-zone-188e</metric>
+    <metric>t-zone-188e</metric>
+    <metric>w-zone-188e</metric>
+    <metric>r-zone-188e</metric>
+    <metric>f-zone-188e</metric>
+    <metric>m-zone-190e</metric>
+    <metric>t-zone-190e</metric>
+    <metric>w-zone-190e</metric>
+    <metric>r-zone-190e</metric>
+    <metric>f-zone-190e</metric>
+    <metric>m-zone-191e</metric>
+    <metric>t-zone-191e</metric>
+    <metric>w-zone-191e</metric>
+    <metric>r-zone-191e</metric>
+    <metric>f-zone-191e</metric>
+    <metric>m-zone-193e</metric>
+    <metric>t-zone-193e</metric>
+    <metric>w-zone-193e</metric>
+    <metric>r-zone-193e</metric>
+    <metric>f-zone-193e</metric>
+    <metric>m-zone-194e</metric>
+    <metric>t-zone-194e</metric>
+    <metric>w-zone-194e</metric>
+    <metric>r-zone-194e</metric>
+    <metric>f-zone-194e</metric>
+    <metric>m-zone-195e</metric>
+    <metric>t-zone-195e</metric>
+    <metric>w-zone-195e</metric>
+    <metric>r-zone-195e</metric>
+    <metric>f-zone-195e</metric>
+    <metric>m-zone-196e</metric>
+    <metric>t-zone-196e</metric>
+    <metric>w-zone-196e</metric>
+    <metric>r-zone-196e</metric>
+    <metric>f-zone-196e</metric>
+    <metric>m-zone-197e</metric>
+    <metric>t-zone-197e</metric>
+    <metric>w-zone-197e</metric>
+    <metric>r-zone-197e</metric>
+    <metric>f-zone-197e</metric>
+    <metric>m-zone-198e</metric>
+    <metric>t-zone-198e</metric>
+    <metric>w-zone-198e</metric>
+    <metric>r-zone-198e</metric>
+    <metric>f-zone-198e</metric>
+    <metric>m-zone-199e</metric>
+    <metric>t-zone-199e</metric>
+    <metric>w-zone-199e</metric>
+    <metric>r-zone-199e</metric>
+    <metric>f-zone-199e</metric>
+    <metric>m-zone-200e</metric>
+    <metric>t-zone-200e</metric>
+    <metric>w-zone-200e</metric>
+    <metric>r-zone-200e</metric>
+    <metric>f-zone-200e</metric>
+    <metric>m-zone-201e</metric>
+    <metric>t-zone-201e</metric>
+    <metric>w-zone-201e</metric>
+    <metric>r-zone-201e</metric>
+    <metric>f-zone-201e</metric>
+    <metric>m-zone-202e</metric>
+    <metric>t-zone-202e</metric>
+    <metric>w-zone-202e</metric>
+    <metric>r-zone-202e</metric>
+    <metric>f-zone-202e</metric>
+    <metric>m-zone-203e</metric>
+    <metric>t-zone-203e</metric>
+    <metric>w-zone-203e</metric>
+    <metric>r-zone-203e</metric>
+    <metric>f-zone-203e</metric>
+    <metric>m-zone-204e</metric>
+    <metric>t-zone-204e</metric>
+    <metric>w-zone-204e</metric>
+    <metric>r-zone-204e</metric>
+    <metric>f-zone-204e</metric>
+    <metric>m-zone-205e</metric>
+    <metric>t-zone-205e</metric>
+    <metric>w-zone-205e</metric>
+    <metric>r-zone-205e</metric>
+    <metric>f-zone-205e</metric>
+    <metric>m-zone-206e</metric>
+    <metric>t-zone-206e</metric>
+    <metric>w-zone-206e</metric>
+    <metric>r-zone-206e</metric>
+    <metric>f-zone-206e</metric>
+    <metric>m-zone-207e</metric>
+    <metric>t-zone-207e</metric>
+    <metric>w-zone-207e</metric>
+    <metric>r-zone-207e</metric>
+    <metric>f-zone-207e</metric>
+    <metric>m-zone-208e</metric>
+    <metric>t-zone-208e</metric>
+    <metric>w-zone-208e</metric>
+    <metric>r-zone-208e</metric>
+    <metric>f-zone-208e</metric>
+    <metric>m-zone-209e</metric>
+    <metric>t-zone-209e</metric>
+    <metric>w-zone-209e</metric>
+    <metric>r-zone-209e</metric>
+    <metric>f-zone-209e</metric>
+    <metric>m-zone-210e</metric>
+    <metric>t-zone-210e</metric>
+    <metric>w-zone-210e</metric>
+    <metric>r-zone-210e</metric>
+    <metric>f-zone-210e</metric>
+    <metric>m-zone-211e</metric>
+    <metric>t-zone-211e</metric>
+    <metric>w-zone-211e</metric>
+    <metric>r-zone-211e</metric>
+    <metric>f-zone-211e</metric>
+    <metric>m-zone-212e</metric>
+    <metric>t-zone-212e</metric>
+    <metric>w-zone-212e</metric>
+    <metric>r-zone-212e</metric>
+    <metric>f-zone-212e</metric>
+    <metric>m-zone-213e</metric>
+    <metric>t-zone-213e</metric>
+    <metric>w-zone-213e</metric>
+    <metric>r-zone-213e</metric>
+    <metric>f-zone-213e</metric>
+    <metric>m-zone-214e</metric>
+    <metric>t-zone-214e</metric>
+    <metric>w-zone-214e</metric>
+    <metric>r-zone-214e</metric>
+    <metric>f-zone-214e</metric>
+    <metric>m-zone-215e</metric>
+    <metric>t-zone-215e</metric>
+    <metric>w-zone-215e</metric>
+    <metric>r-zone-215e</metric>
+    <metric>f-zone-215e</metric>
+    <metric>m-zone-216e</metric>
+    <metric>t-zone-216e</metric>
+    <metric>w-zone-216e</metric>
+    <metric>r-zone-216e</metric>
+    <metric>f-zone-216e</metric>
+    <metric>m-zone-217e</metric>
+    <metric>t-zone-217e</metric>
+    <metric>w-zone-217e</metric>
+    <metric>r-zone-217e</metric>
+    <metric>f-zone-217e</metric>
+    <metric>m-zone-218e</metric>
+    <metric>t-zone-218e</metric>
+    <metric>w-zone-218e</metric>
+    <metric>r-zone-218e</metric>
+    <metric>f-zone-218e</metric>
+    <metric>m-zone-219e</metric>
+    <metric>t-zone-219e</metric>
+    <metric>w-zone-219e</metric>
+    <metric>r-zone-219e</metric>
+    <metric>f-zone-219e</metric>
+    <metric>m-zone-220e</metric>
+    <metric>t-zone-220e</metric>
+    <metric>w-zone-220e</metric>
+    <metric>r-zone-220e</metric>
+    <metric>f-zone-220e</metric>
+    <metric>m-zone-221e</metric>
+    <metric>t-zone-221e</metric>
+    <metric>w-zone-221e</metric>
+    <metric>r-zone-221e</metric>
+    <metric>f-zone-221e</metric>
+    <metric>sample-week</metric>
+    <metric>sample-day</metric>
+    <enumeratedValueSet variable="random-seed">
+      <value value="4519"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="local-seed" first="1" step="1" last="1000"/>
+  </experiment>
+  <experiment name="1000_Runs_New_Gamma_Delta_Values_50_pc" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>spread-tc</metric>
+    <metric>m-crate-prevalence</metric>
+    <metric>t-crate-prevalence</metric>
+    <metric>w-crate-prevalence</metric>
+    <metric>r-crate-prevalence</metric>
+    <metric>f-crate-prevalence</metric>
+    <metric>food-conc</metric>
+    <metric>food-tc</metric>
+    <metric>zone4-load</metric>
+    <metric>random-load</metric>
+    <metric>m-san-reduction</metric>
+    <metric>t-san-reduction</metric>
+    <metric>w-san-reduction</metric>
+    <metric>r-san-reduction</metric>
+    <metric>f-san-reduction</metric>
+    <metric>a-san-reduction</metric>
+    <metric>prob-cleanable</metric>
+    <metric>mu-max</metric>
+    <metric>K</metric>
+    <metric>p-patch-spread</metric>
+    <metric>p-water-spread</metric>
+    <metric>p-food-dropped</metric>
+    <metric>p-condensation</metric>
+    <metric>p-random-noise</metric>
+    <metric>p-zone4-intro</metric>
+    <metric>p11</metric>
+    <metric>p12</metric>
+    <metric>p13</metric>
+    <metric>p14</metric>
+    <metric>p21</metric>
+    <metric>p22</metric>
+    <metric>p23</metric>
+    <metric>p24</metric>
+    <metric>p31</metric>
+    <metric>p32</metric>
+    <metric>p33</metric>
+    <metric>p34</metric>
+    <metric>p41</metric>
+    <metric>p42</metric>
+    <metric>p43</metric>
+    <metric>p44</metric>
+    <metric>tc11</metric>
+    <metric>tc12</metric>
+    <metric>tc13</metric>
+    <metric>tc14</metric>
+    <metric>tc21</metric>
+    <metric>tc22</metric>
+    <metric>tc23</metric>
+    <metric>tc24</metric>
+    <metric>tc31</metric>
+    <metric>tc32</metric>
+    <metric>tc33</metric>
+    <metric>tc34</metric>
+    <metric>tc41</metric>
+    <metric>tc42</metric>
+    <metric>tc43</metric>
+    <metric>tc44</metric>
+    <metric>initial-zone-prevalence</metric>
+    <metric>initial-contamination-level</metric>
+    <metric>zones-initial</metric>
+    <metric>z1-initial</metric>
+    <metric>z2-initial</metric>
+    <metric>z3-initial</metric>
+    <metric>p-initial</metric>
+    <metric>e-initial</metric>
+    <metric>m-zones-pre</metric>
+    <metric>t-zones-pre</metric>
+    <metric>w-zones-pre</metric>
+    <metric>r-zones-pre</metric>
+    <metric>f-zones-pre</metric>
+    <metric>m-zones-beg</metric>
+    <metric>t-zones-beg</metric>
+    <metric>w-zones-beg</metric>
+    <metric>r-zones-beg</metric>
+    <metric>f-zones-beg</metric>
+    <metric>m-zones-mid</metric>
+    <metric>t-zones-mid</metric>
+    <metric>w-zones-mid</metric>
+    <metric>r-zones-mid</metric>
+    <metric>f-zones-mid</metric>
+    <metric>m-zones-post</metric>
+    <metric>t-zones-post</metric>
+    <metric>w-zones-post</metric>
+    <metric>r-zones-post</metric>
+    <metric>f-zones-post</metric>
+    <metric>zone-to-zone</metric>
+    <metric>avg-listeria-transferred</metric>
+    <metric>zone-to-patch</metric>
+    <metric>condensation-drip</metric>
+    <metric>introduction-zone4</metric>
+    <metric>patch-to-patch</metric>
+    <metric>introduction-food</metric>
+    <metric>sum-food-load</metric>
+    <metric>sum-food-transfer</metric>
+    <metric>random-event</metric>
+    <metric>employee-fcs</metric>
+    <metric>nfcs-fcs</metric>
+    <metric>total-contam-events</metric>
+    <metric>m-random-event</metric>
+    <metric>t-random-event</metric>
+    <metric>w-random-event</metric>
+    <metric>r-random-event</metric>
+    <metric>f-random-event</metric>
+    <metric>median-z1-time</metric>
+    <metric>median-z2-time</metric>
+    <metric>median-z3-time</metric>
+    <metric>median-e-time</metric>
+    <metric>median-p-time</metric>
+    <metric>median-fwj-time</metric>
+    <metric>median-d-time</metric>
+    <metric>median-z1-max-contam-bout</metric>
+    <metric>median-z2-max-contam-bout</metric>
+    <metric>median-z3-max-contam-bout</metric>
+    <metric>median-e-max-contam-bout</metric>
+    <metric>median-p-max-contam-bout</metric>
+    <metric>median-d-max-contam-bout</metric>
+    <metric>median-fwj-max-contam-bout</metric>
+    <metric>temporary-niches</metric>
+    <metric>p-temp-niches</metric>
+    <metric>z1-temp-niches</metric>
+    <metric>z2-temp-niches</metric>
+    <metric>z3-temp-niches</metric>
+    <metric>z1-contacts</metric>
+    <metric>z2-contacts</metric>
+    <metric>z3-contacts</metric>
+    <metric>z1-transfers</metric>
+    <metric>z2-transfers</metric>
+    <metric>z3-transfers</metric>
+    <metric>z-sample-beg-prev</metric>
+    <metric>z-sample-mid-prev</metric>
+    <metric>z-sample-post-prev</metric>
+    <metric>z1-prev</metric>
+    <metric>z2-prev</metric>
+    <metric>z3-prev</metric>
+    <metric>m-z-all</metric>
+    <metric>m-z-all-employees</metric>
+    <metric>t-z-all</metric>
+    <metric>t-z-all-employees</metric>
+    <metric>w-z-all</metric>
+    <metric>w-z-all-employees</metric>
+    <metric>mid-all</metric>
+    <metric>mid-all-employees</metric>
+    <metric>z1-all</metric>
+    <metric>z1-all-employees</metric>
+    <metric>z2-all</metric>
+    <metric>z2-all-employees</metric>
+    <metric>z3-all</metric>
+    <metric>z3-all-employees</metric>
+    <metric>z1-conc-time-list</metric>
+    <metric>z1-conc-time-cleanable-list</metric>
+    <metric>z1-conc-time-uncleanable-list</metric>
+    <metric>z2-conc-time-list</metric>
+    <metric>z2-conc-time-cleanable-list</metric>
+    <metric>z2-conc-time-uncleanable-list</metric>
+    <metric>z3-conc-time-list</metric>
+    <metric>z3-conc-time-cleanable-list</metric>
+    <metric>z3-conc-time-uncleanable-list</metric>
+    <metric>cleaning-all</metric>
+    <metric>cleaning-all-employees</metric>
+    <metric>drying-all</metric>
+    <metric>drying-all-employees</metric>
+    <metric>loading-all</metric>
+    <metric>loading-all-employees</metric>
+    <metric>reject-all</metric>
+    <metric>reject-all-employees</metric>
+    <metric>sorting-all</metric>
+    <metric>sorting-all-employees</metric>
+    <metric>tray-packing-all</metric>
+    <metric>tray-packing-all-employees</metric>
+    <metric>other-all</metric>
+    <metric>other-all-employees</metric>
+    <metric>cleaning-conc-list</metric>
+    <metric>drying-conc-list</metric>
+    <metric>loading-conc-list</metric>
+    <metric>reject-conc-list</metric>
+    <metric>sorting-conc-list</metric>
+    <metric>tray-packing-conc-list</metric>
+    <metric>other-conc-list</metric>
+    <metric>cleaning-conc-time-list</metric>
+    <metric>drying-conc-time-list</metric>
+    <metric>loading-conc-time-list</metric>
+    <metric>reject-conc-time-list</metric>
+    <metric>sorting-conc-time-list</metric>
+    <metric>tray-packing-conc-time-list</metric>
+    <metric>other-conc-time-list</metric>
+    <metric>cleaning-conc-time-cleanable-list</metric>
+    <metric>drying-conc-time-cleanable-list</metric>
+    <metric>loading-conc-time-cleanable-list</metric>
+    <metric>reject-conc-time-cleanable-list</metric>
+    <metric>sorting-conc-time-cleanable-list</metric>
+    <metric>other-conc-time-cleanable-list</metric>
+    <metric>cleaning-conc-time-uncleanable-list</metric>
+    <metric>drying-conc-time-uncleanable-list</metric>
+    <metric>loading-conc-time-uncleanable-list</metric>
+    <metric>reject-conc-time-uncleanable-list</metric>
+    <metric>sorting-conc-time-uncleanable-list</metric>
+    <metric>other-conc-time-uncleanable-list</metric>
+    <metric>cleaning-niche-time-list</metric>
+    <metric>drying-niche-time-list</metric>
+    <metric>loading-niche-time-list</metric>
+    <metric>reject-niche-time-list</metric>
+    <metric>sorting-niche-time-list</metric>
+    <metric>tray-packing-niche-time-list</metric>
+    <metric>other-niche-time-list</metric>
+    <metric>cleaning-niche-length-list</metric>
+    <metric>drying-niche-length-list</metric>
+    <metric>loading-niche-length-list</metric>
+    <metric>reject-niche-length-list</metric>
+    <metric>sorting-niche-length-list</metric>
+    <metric>tray-packing-niche-length-list</metric>
+    <metric>other-niche-length-list</metric>
+    <metric>w2wed-count-list</metric>
+    <metric>w2wed-conc-list</metric>
+    <metric>w2wed-time-contaminated-list</metric>
+    <metric>w2wed-max-contam-bout-list</metric>
+    <metric>w2wed-contacts-list</metric>
+    <metric>w2wed-transfers-list</metric>
+    <metric>cleaning-w2wed-count-list</metric>
+    <metric>drying-w2wed-count-list</metric>
+    <metric>loading-w2wed-count-list</metric>
+    <metric>reject-w2wed-count-list</metric>
+    <metric>sorting-w2wed-count-list</metric>
+    <metric>tray-packing-w2wed-count-list</metric>
+    <metric>other-w2wed-count-list</metric>
+    <metric>z1-w2wed-count-list</metric>
+    <metric>z2-w2wed-count-list</metric>
+    <metric>z3-w2wed-count-list</metric>
+    <metric>z1-w2wed-pre-count-list</metric>
+    <metric>z2-w2wed-pre-count-list</metric>
+    <metric>z3-w2wed-pre-count-list</metric>
+    <metric>z1-w2wed-beg-count-list</metric>
+    <metric>z2-w2wed-beg-count-list</metric>
+    <metric>z3-w2wed-beg-count-list</metric>
+    <metric>z1-w2wed-end-count-list</metric>
+    <metric>z2-w2wed-end-count-list</metric>
+    <metric>z3-w2wed-end-count-list</metric>
+    <metric>cleanable-w2wed-count-list</metric>
+    <metric>uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-count-list</metric>
+    <metric>drying-z1-cleanable-w2wed-count-list</metric>
+    <metric>loading-z1-cleanable-w2wed-count-list</metric>
+    <metric>reject-z1-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-count-list</metric>
+    <metric>other-z1-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-count-list</metric>
+    <metric>drying-z2-cleanable-w2wed-count-list</metric>
+    <metric>loading-z2-cleanable-w2wed-count-list</metric>
+    <metric>reject-z2-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-count-list</metric>
+    <metric>other-z2-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-count-list</metric>
+    <metric>drying-z3-cleanable-w2wed-count-list</metric>
+    <metric>loading-z3-cleanable-w2wed-count-list</metric>
+    <metric>reject-z3-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-count-list</metric>
+    <metric>other-z3-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-count-list</metric>
+    <metric>other-z1-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-count-list</metric>
+    <metric>other-z2-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-count-list</metric>
+    <metric>other-z3-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-w2wed-conc-list</metric>
+    <metric>drying-w2wed-conc-list</metric>
+    <metric>loading-w2wed-conc-list</metric>
+    <metric>reject-w2wed-conc-list</metric>
+    <metric>sorting-w2wed-conc-list</metric>
+    <metric>tray-packing-w2wed-conc-list</metric>
+    <metric>other-w2wed-conc-list</metric>
+    <metric>z1-w2wed-conc-list</metric>
+    <metric>z2-w2wed-conc-list</metric>
+    <metric>z3-w2wed-conc-list</metric>
+    <metric>z1-w2wed-pre-conc-list</metric>
+    <metric>z2-w2wed-pre-conc-list</metric>
+    <metric>z3-w2wed-pre-conc-list</metric>
+    <metric>z1-w2wed-beg-conc-list</metric>
+    <metric>z2-w2wed-beg-conc-list</metric>
+    <metric>z3-w2wed-beg-conc-list</metric>
+    <metric>z1-w2wed-end-conc-list</metric>
+    <metric>z2-w2wed-end-conc-list</metric>
+    <metric>z3-w2wed-end-conc-list</metric>
+    <metric>cleanable-w2wed-conc-list</metric>
+    <metric>uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-conc-list</metric>
+    <metric>other-z1-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-conc-list</metric>
+    <metric>other-z2-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-conc-list</metric>
+    <metric>other-z3-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-w2wed-prev</metric>
+    <metric>drying-w2wed-prev</metric>
+    <metric>loading-w2wed-prev</metric>
+    <metric>reject-w2wed-prev</metric>
+    <metric>sorting-w2wed-prev</metric>
+    <metric>tray-packing-w2wed-prev</metric>
+    <metric>other-w2wed-prev</metric>
+    <metric>z1-w2wed-prev</metric>
+    <metric>z2-w2wed-prev</metric>
+    <metric>z3-w2wed-prev</metric>
+    <metric>z1-w2wed-pre-prev</metric>
+    <metric>z2-w2wed-pre-prev</metric>
+    <metric>z3-w2wed-pre-prev</metric>
+    <metric>z1-w2wed-beg-prev</metric>
+    <metric>z2-w2wed-beg-prev</metric>
+    <metric>z3-w2wed-beg-prev</metric>
+    <metric>z1-w2wed-end-prev</metric>
+    <metric>z2-w2wed-end-prev</metric>
+    <metric>z3-w2wed-end-prev</metric>
+    <metric>cleanable-w2wed-prev</metric>
+    <metric>uncleanable-w2wed-prev</metric>
+    <metric>cleaning-cleanable-w2wed-prev</metric>
+    <metric>drying-cleanable-w2wed-prev</metric>
+    <metric>loading-cleanable-w2wed-prev</metric>
+    <metric>reject-cleanable-w2wed-prev</metric>
+    <metric>sorting-cleanable-w2wed-prev</metric>
+    <metric>other-cleanable-w2wed-prev</metric>
+    <metric>cleaning-uncleanable-w2wed-prev</metric>
+    <metric>drying-uncleanable-w2wed-prev</metric>
+    <metric>loading-uncleanable-w2wed-prev</metric>
+    <metric>reject-uncleanable-w2wed-prev</metric>
+    <metric>sorting-uncleanable-w2wed-prev</metric>
+    <metric>other-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-w2wed-prev</metric>
+    <metric>drying-z1-w2wed-prev</metric>
+    <metric>loading-z1-w2wed-prev</metric>
+    <metric>reject-z1-w2wed-prev</metric>
+    <metric>sorting-z1-w2wed-prev</metric>
+    <metric>other-z1-w2wed-prev</metric>
+    <metric>cleaning-z2-w2wed-prev</metric>
+    <metric>drying-z2-w2wed-prev</metric>
+    <metric>loading-z2-w2wed-prev</metric>
+    <metric>reject-z2-w2wed-prev</metric>
+    <metric>sorting-z2-w2wed-prev</metric>
+    <metric>other-z2-w2wed-prev</metric>
+    <metric>cleaning-z3-w2wed-prev</metric>
+    <metric>drying-z3-w2wed-prev</metric>
+    <metric>loading-z3-w2wed-prev</metric>
+    <metric>reject-z3-w2wed-prev</metric>
+    <metric>sorting-z3-w2wed-prev</metric>
+    <metric>other-z3-w2wed-prev</metric>
+    <metric>cleanable-z1-w2wed-prev</metric>
+    <metric>cleanable-z2-w2wed-prev</metric>
+    <metric>cleanable-z3-w2wed-prev</metric>
+    <metric>uncleanable-z1-w2wed-prev</metric>
+    <metric>uncleanable-z2-w2wed-prev</metric>
+    <metric>uncleanable-z3-w2wed-prev</metric>
+    <metric>cleaning-z1-cleanable-w2wed-prev</metric>
+    <metric>drying-z1-cleanable-w2wed-prev</metric>
+    <metric>loading-z1-cleanable-w2wed-prev</metric>
+    <metric>reject-z1-cleanable-w2wed-prev</metric>
+    <metric>sorting-z1-cleanable-w2wed-prev</metric>
+    <metric>other-z1-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-cleanable-w2wed-prev</metric>
+    <metric>drying-z2-cleanable-w2wed-prev</metric>
+    <metric>loading-z2-cleanable-w2wed-prev</metric>
+    <metric>reject-z2-cleanable-w2wed-prev</metric>
+    <metric>sorting-z2-cleanable-w2wed-prev</metric>
+    <metric>other-z2-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-cleanable-w2wed-prev</metric>
+    <metric>drying-z3-cleanable-w2wed-prev</metric>
+    <metric>loading-z3-cleanable-w2wed-prev</metric>
+    <metric>reject-z3-cleanable-w2wed-prev</metric>
+    <metric>sorting-z3-cleanable-w2wed-prev</metric>
+    <metric>other-z3-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-prev</metric>
+    <metric>drying-z1-uncleanable-w2wed-prev</metric>
+    <metric>loading-z1-uncleanable-w2wed-prev</metric>
+    <metric>reject-z1-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z1-uncleanable-w2wed-prev</metric>
+    <metric>other-z1-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-prev</metric>
+    <metric>drying-z2-uncleanable-w2wed-prev</metric>
+    <metric>loading-z2-uncleanable-w2wed-prev</metric>
+    <metric>reject-z2-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z2-uncleanable-w2wed-prev</metric>
+    <metric>other-z2-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-prev</metric>
+    <metric>drying-z3-uncleanable-w2wed-prev</metric>
+    <metric>loading-z3-uncleanable-w2wed-prev</metric>
+    <metric>reject-z3-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z3-uncleanable-w2wed-prev</metric>
+    <metric>other-z3-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-total-prev</metric>
+    <metric>drying-total-prev</metric>
+    <metric>loading-total-prev</metric>
+    <metric>reject-total-prev</metric>
+    <metric>sorting-total-prev</metric>
+    <metric>tray-packing-total-prev</metric>
+    <metric>other-total-prev</metric>
+    <metric>concentration-list</metric>
+    <metric>time-contaminated-list</metric>
+    <metric>max-contam-bout-list</metric>
+    <metric>contacts-list</metric>
+    <metric>transfers-list</metric>
+    <metric>temp-niche-list</metric>
+    <metric>niches-estab-list</metric>
+    <metric>food-cont-list</metric>
+    <metric>zone4-cont-list</metric>
+    <metric>random-cont-list</metric>
+    <metric>random-event-list</metric>
+    <metric>cluster-conc-mid-mon-list</metric>
+    <metric>cluster-conc-mid-tue-list</metric>
+    <metric>cluster-conc-mid-wed-list</metric>
+    <metric>cluster-conc-mid-thu-list</metric>
+    <metric>cluster-conc-mid-fri-list</metric>
+    <metric>cluster-conc-mid-mon-median-list</metric>
+    <metric>cluster-conc-mid-tue-median-list</metric>
+    <metric>cluster-conc-mid-wed-median-list</metric>
+    <metric>cluster-conc-mid-thu-median-list</metric>
+    <metric>cluster-conc-mid-fri-median-list</metric>
+    <metric>cluster-conc-mid-mon-mean-list</metric>
+    <metric>cluster-conc-mid-tue-mean-list</metric>
+    <metric>cluster-conc-mid-wed-mean-list</metric>
+    <metric>cluster-conc-mid-thu-mean-list</metric>
+    <metric>cluster-conc-mid-fri-mean-list</metric>
+    <metric>m-z1-pre</metric>
+    <metric>t-z1-pre</metric>
+    <metric>w-z1-pre</metric>
+    <metric>r-z1-pre</metric>
+    <metric>f-z1-pre</metric>
+    <metric>m-z2-pre</metric>
+    <metric>t-z2-pre</metric>
+    <metric>w-z2-pre</metric>
+    <metric>r-z2-pre</metric>
+    <metric>f-z2-pre</metric>
+    <metric>m-z3-pre</metric>
+    <metric>t-z3-pre</metric>
+    <metric>w-z3-pre</metric>
+    <metric>r-z3-pre</metric>
+    <metric>f-z3-pre</metric>
+    <metric>m-p-pre</metric>
+    <metric>t-p-pre</metric>
+    <metric>w-p-pre</metric>
+    <metric>r-p-pre</metric>
+    <metric>f-p-pre</metric>
+    <metric>m-e-pre</metric>
+    <metric>t-e-pre</metric>
+    <metric>w-e-pre</metric>
+    <metric>r-e-pre</metric>
+    <metric>f-e-pre</metric>
+    <metric>m-z1-beg</metric>
+    <metric>t-z1-beg</metric>
+    <metric>w-z1-beg</metric>
+    <metric>r-z1-beg</metric>
+    <metric>f-z1-beg</metric>
+    <metric>m-z2-beg</metric>
+    <metric>t-z2-beg</metric>
+    <metric>w-z2-beg</metric>
+    <metric>r-z2-beg</metric>
+    <metric>f-z2-beg</metric>
+    <metric>m-z3-beg</metric>
+    <metric>t-z3-beg</metric>
+    <metric>w-z3-beg</metric>
+    <metric>r-z3-beg</metric>
+    <metric>f-z3-beg</metric>
+    <metric>m-p-beg</metric>
+    <metric>t-p-beg</metric>
+    <metric>w-p-beg</metric>
+    <metric>r-p-beg</metric>
+    <metric>f-p-beg</metric>
+    <metric>m-e-beg</metric>
+    <metric>t-e-beg</metric>
+    <metric>w-e-beg</metric>
+    <metric>r-e-beg</metric>
+    <metric>f-e-beg</metric>
+    <metric>m-z1-mid</metric>
+    <metric>t-z1-mid</metric>
+    <metric>w-z1-mid</metric>
+    <metric>r-z1-mid</metric>
+    <metric>f-z1-mid</metric>
+    <metric>m-z2-mid</metric>
+    <metric>t-z2-mid</metric>
+    <metric>w-z2-mid</metric>
+    <metric>r-z2-mid</metric>
+    <metric>f-z2-mid</metric>
+    <metric>m-z3-mid</metric>
+    <metric>t-z3-mid</metric>
+    <metric>w-z3-mid</metric>
+    <metric>r-z3-mid</metric>
+    <metric>f-z3-mid</metric>
+    <metric>m-p-mid</metric>
+    <metric>t-p-mid</metric>
+    <metric>w-p-mid</metric>
+    <metric>r-p-mid</metric>
+    <metric>f-p-mid</metric>
+    <metric>m-e-mid</metric>
+    <metric>t-e-mid</metric>
+    <metric>w-e-mid</metric>
+    <metric>r-e-mid</metric>
+    <metric>f-e-mid</metric>
+    <metric>m-z1-post</metric>
+    <metric>t-z1-post</metric>
+    <metric>w-z1-post</metric>
+    <metric>r-z1-post</metric>
+    <metric>f-z1-post</metric>
+    <metric>m-z2-post</metric>
+    <metric>t-z2-post</metric>
+    <metric>w-z2-post</metric>
+    <metric>r-z2-post</metric>
+    <metric>f-z2-post</metric>
+    <metric>m-z3-post</metric>
+    <metric>t-z3-post</metric>
+    <metric>w-z3-post</metric>
+    <metric>r-z3-post</metric>
+    <metric>f-z3-post</metric>
+    <metric>m-p-post</metric>
+    <metric>t-p-post</metric>
+    <metric>w-p-post</metric>
+    <metric>r-p-post</metric>
+    <metric>f-p-post</metric>
+    <metric>m-e-post</metric>
+    <metric>t-e-post</metric>
+    <metric>w-e-post</metric>
+    <metric>r-e-post</metric>
+    <metric>f-e-post</metric>
+    <metric>crack</metric>
+    <metric>m-z1-conc-pre</metric>
+    <metric>t-z1-conc-pre</metric>
+    <metric>w-z1-conc-pre</metric>
+    <metric>r-z1-conc-pre</metric>
+    <metric>f-z1-conc-pre</metric>
+    <metric>m-z2-conc-pre</metric>
+    <metric>t-z2-conc-pre</metric>
+    <metric>w-z2-conc-pre</metric>
+    <metric>r-z2-conc-pre</metric>
+    <metric>f-z2-conc-pre</metric>
+    <metric>m-z3-conc-pre</metric>
+    <metric>t-z3-conc-pre</metric>
+    <metric>w-z3-conc-pre</metric>
+    <metric>r-z3-conc-pre</metric>
+    <metric>f-z3-conc-pre</metric>
+    <metric>m-p-conc-pre</metric>
+    <metric>t-p-conc-pre</metric>
+    <metric>w-p-conc-pre</metric>
+    <metric>r-p-conc-pre</metric>
+    <metric>f-p-conc-pre</metric>
+    <metric>m-e-conc-pre</metric>
+    <metric>t-e-conc-pre</metric>
+    <metric>w-e-conc-pre</metric>
+    <metric>r-e-conc-pre</metric>
+    <metric>f-e-conc-pre</metric>
+    <metric>m-z1-conc-mid</metric>
+    <metric>t-z1-conc-mid</metric>
+    <metric>w-z1-conc-mid</metric>
+    <metric>r-z1-conc-mid</metric>
+    <metric>f-z1-conc-mid</metric>
+    <metric>m-z2-conc-mid</metric>
+    <metric>t-z2-conc-mid</metric>
+    <metric>w-z2-conc-mid</metric>
+    <metric>r-z2-conc-mid</metric>
+    <metric>f-z2-conc-mid</metric>
+    <metric>m-z3-conc-mid</metric>
+    <metric>t-z3-conc-mid</metric>
+    <metric>w-z3-conc-mid</metric>
+    <metric>r-z3-conc-mid</metric>
+    <metric>f-z3-conc-mid</metric>
+    <metric>m-p-conc-mid</metric>
+    <metric>t-p-conc-mid</metric>
+    <metric>w-p-conc-mid</metric>
+    <metric>r-p-conc-mid</metric>
+    <metric>f-p-conc-mid</metric>
+    <metric>m-e-conc-mid</metric>
+    <metric>t-e-conc-mid</metric>
+    <metric>w-e-conc-mid</metric>
+    <metric>r-e-conc-mid</metric>
+    <metric>f-e-conc-mid</metric>
+    <metric>m-z1-conc-post</metric>
+    <metric>t-z1-conc-post</metric>
+    <metric>w-z1-conc-post</metric>
+    <metric>r-z1-conc-post</metric>
+    <metric>f-z1-conc-post</metric>
+    <metric>m-z2-conc-post</metric>
+    <metric>t-z2-conc-post</metric>
+    <metric>w-z2-conc-post</metric>
+    <metric>r-z2-conc-post</metric>
+    <metric>f-z2-conc-post</metric>
+    <metric>m-z3-conc-post</metric>
+    <metric>t-z3-conc-post</metric>
+    <metric>w-z3-conc-post</metric>
+    <metric>r-z3-conc-post</metric>
+    <metric>f-z3-conc-post</metric>
+    <metric>m-p-conc-post</metric>
+    <metric>t-p-conc-post</metric>
+    <metric>w-p-conc-post</metric>
+    <metric>r-p-conc-post</metric>
+    <metric>f-p-conc-post</metric>
+    <metric>m-e-conc-post</metric>
+    <metric>t-e-conc-post</metric>
+    <metric>w-e-conc-post</metric>
+    <metric>r-e-conc-post</metric>
+    <metric>f-e-conc-post</metric>
+    <metric>m-z-sample-prev</metric>
+    <metric>t-z-sample-prev</metric>
+    <metric>w-z-sample-prev</metric>
+    <metric>r-z-sample-prev</metric>
+    <metric>f-z-sample-prev</metric>
+    <metric>m-z-prev</metric>
+    <metric>t-z-prev</metric>
+    <metric>w-z-prev</metric>
+    <metric>r-z-prev</metric>
+    <metric>f-z-prev</metric>
+    <metric>fcs-prev</metric>
+    <metric>total-fcs</metric>
+    <metric>nfcs-prev</metric>
+    <metric>total-nfcs</metric>
+    <metric>m-zone-0b</metric>
+    <metric>t-zone-0b</metric>
+    <metric>w-zone-0b</metric>
+    <metric>r-zone-0b</metric>
+    <metric>f-zone-0b</metric>
+    <metric>m-zone-3b</metric>
+    <metric>t-zone-3b</metric>
+    <metric>w-zone-3b</metric>
+    <metric>r-zone-3b</metric>
+    <metric>f-zone-3b</metric>
+    <metric>m-zone-4b</metric>
+    <metric>t-zone-4b</metric>
+    <metric>w-zone-4b</metric>
+    <metric>r-zone-4b</metric>
+    <metric>f-zone-4b</metric>
+    <metric>m-zone-20b</metric>
+    <metric>t-zone-20b</metric>
+    <metric>w-zone-20b</metric>
+    <metric>r-zone-20b</metric>
+    <metric>f-zone-20b</metric>
+    <metric>m-zone-26b</metric>
+    <metric>t-zone-26b</metric>
+    <metric>w-zone-26b</metric>
+    <metric>r-zone-26b</metric>
+    <metric>f-zone-26b</metric>
+    <metric>m-zone-29b</metric>
+    <metric>t-zone-29b</metric>
+    <metric>w-zone-29b</metric>
+    <metric>r-zone-29b</metric>
+    <metric>f-zone-29b</metric>
+    <metric>m-zone-30b</metric>
+    <metric>t-zone-30b</metric>
+    <metric>w-zone-30b</metric>
+    <metric>r-zone-30b</metric>
+    <metric>f-zone-30b</metric>
+    <metric>m-zone-31b</metric>
+    <metric>t-zone-31b</metric>
+    <metric>w-zone-31b</metric>
+    <metric>r-zone-31b</metric>
+    <metric>f-zone-31b</metric>
+    <metric>m-zone-38b</metric>
+    <metric>t-zone-38b</metric>
+    <metric>w-zone-38b</metric>
+    <metric>r-zone-38b</metric>
+    <metric>f-zone-38b</metric>
+    <metric>m-zone-78b</metric>
+    <metric>t-zone-78b</metric>
+    <metric>w-zone-78b</metric>
+    <metric>r-zone-78b</metric>
+    <metric>f-zone-78b</metric>
+    <metric>m-zone-116b</metric>
+    <metric>t-zone-116b</metric>
+    <metric>w-zone-116b</metric>
+    <metric>r-zone-116b</metric>
+    <metric>f-zone-116b</metric>
+    <metric>m-zone-134b</metric>
+    <metric>t-zone-134b</metric>
+    <metric>w-zone-134b</metric>
+    <metric>r-zone-134b</metric>
+    <metric>f-zone-134b</metric>
+    <metric>m-zone-166b</metric>
+    <metric>t-zone-166b</metric>
+    <metric>w-zone-166b</metric>
+    <metric>r-zone-166b</metric>
+    <metric>f-zone-166b</metric>
+    <metric>m-zone-186b</metric>
+    <metric>t-zone-186b</metric>
+    <metric>w-zone-186b</metric>
+    <metric>r-zone-186b</metric>
+    <metric>f-zone-186b</metric>
+    <metric>m-zone-187b</metric>
+    <metric>t-zone-187b</metric>
+    <metric>w-zone-187b</metric>
+    <metric>r-zone-187b</metric>
+    <metric>f-zone-187b</metric>
+    <metric>m-zone-188b</metric>
+    <metric>t-zone-188b</metric>
+    <metric>w-zone-188b</metric>
+    <metric>r-zone-188b</metric>
+    <metric>f-zone-188b</metric>
+    <metric>m-zone-190b</metric>
+    <metric>t-zone-190b</metric>
+    <metric>w-zone-190b</metric>
+    <metric>r-zone-190b</metric>
+    <metric>f-zone-190b</metric>
+    <metric>m-zone-191b</metric>
+    <metric>t-zone-191b</metric>
+    <metric>w-zone-191b</metric>
+    <metric>r-zone-191b</metric>
+    <metric>f-zone-191b</metric>
+    <metric>m-zone-193b</metric>
+    <metric>t-zone-193b</metric>
+    <metric>w-zone-193b</metric>
+    <metric>r-zone-193b</metric>
+    <metric>f-zone-193b</metric>
+    <metric>m-zone-194b</metric>
+    <metric>t-zone-194b</metric>
+    <metric>w-zone-194b</metric>
+    <metric>r-zone-194b</metric>
+    <metric>f-zone-194b</metric>
+    <metric>m-zone-195b</metric>
+    <metric>t-zone-195b</metric>
+    <metric>w-zone-195b</metric>
+    <metric>r-zone-195b</metric>
+    <metric>f-zone-195b</metric>
+    <metric>m-zone-196b</metric>
+    <metric>t-zone-196b</metric>
+    <metric>w-zone-196b</metric>
+    <metric>r-zone-196b</metric>
+    <metric>f-zone-196b</metric>
+    <metric>m-zone-197b</metric>
+    <metric>t-zone-197b</metric>
+    <metric>w-zone-197b</metric>
+    <metric>r-zone-197b</metric>
+    <metric>f-zone-197b</metric>
+    <metric>m-zone-198b</metric>
+    <metric>t-zone-198b</metric>
+    <metric>w-zone-198b</metric>
+    <metric>r-zone-198b</metric>
+    <metric>f-zone-198b</metric>
+    <metric>m-zone-199b</metric>
+    <metric>t-zone-199b</metric>
+    <metric>w-zone-199b</metric>
+    <metric>r-zone-199b</metric>
+    <metric>f-zone-199b</metric>
+    <metric>m-zone-200b</metric>
+    <metric>t-zone-200b</metric>
+    <metric>w-zone-200b</metric>
+    <metric>r-zone-200b</metric>
+    <metric>f-zone-200b</metric>
+    <metric>m-zone-201b</metric>
+    <metric>t-zone-201b</metric>
+    <metric>w-zone-201b</metric>
+    <metric>r-zone-201b</metric>
+    <metric>f-zone-201b</metric>
+    <metric>m-zone-202b</metric>
+    <metric>t-zone-202b</metric>
+    <metric>w-zone-202b</metric>
+    <metric>r-zone-202b</metric>
+    <metric>f-zone-202b</metric>
+    <metric>m-zone-203b</metric>
+    <metric>t-zone-203b</metric>
+    <metric>w-zone-203b</metric>
+    <metric>r-zone-203b</metric>
+    <metric>f-zone-203b</metric>
+    <metric>m-zone-204b</metric>
+    <metric>t-zone-204b</metric>
+    <metric>w-zone-204b</metric>
+    <metric>r-zone-204b</metric>
+    <metric>f-zone-204b</metric>
+    <metric>m-zone-205b</metric>
+    <metric>t-zone-205b</metric>
+    <metric>w-zone-205b</metric>
+    <metric>r-zone-205b</metric>
+    <metric>f-zone-205b</metric>
+    <metric>m-zone-206b</metric>
+    <metric>t-zone-206b</metric>
+    <metric>w-zone-206b</metric>
+    <metric>r-zone-206b</metric>
+    <metric>f-zone-206b</metric>
+    <metric>m-zone-207b</metric>
+    <metric>t-zone-207b</metric>
+    <metric>w-zone-207b</metric>
+    <metric>r-zone-207b</metric>
+    <metric>f-zone-207b</metric>
+    <metric>m-zone-208b</metric>
+    <metric>t-zone-208b</metric>
+    <metric>w-zone-208b</metric>
+    <metric>r-zone-208b</metric>
+    <metric>f-zone-208b</metric>
+    <metric>m-zone-209b</metric>
+    <metric>t-zone-209b</metric>
+    <metric>w-zone-209b</metric>
+    <metric>r-zone-209b</metric>
+    <metric>f-zone-209b</metric>
+    <metric>m-zone-210b</metric>
+    <metric>t-zone-210b</metric>
+    <metric>w-zone-210b</metric>
+    <metric>r-zone-210b</metric>
+    <metric>f-zone-210b</metric>
+    <metric>m-zone-211b</metric>
+    <metric>t-zone-211b</metric>
+    <metric>w-zone-211b</metric>
+    <metric>r-zone-211b</metric>
+    <metric>f-zone-211b</metric>
+    <metric>m-zone-212b</metric>
+    <metric>t-zone-212b</metric>
+    <metric>w-zone-212b</metric>
+    <metric>r-zone-212b</metric>
+    <metric>f-zone-212b</metric>
+    <metric>m-zone-213b</metric>
+    <metric>t-zone-213b</metric>
+    <metric>w-zone-213b</metric>
+    <metric>r-zone-213b</metric>
+    <metric>f-zone-213b</metric>
+    <metric>m-zone-214b</metric>
+    <metric>t-zone-214b</metric>
+    <metric>w-zone-214b</metric>
+    <metric>r-zone-214b</metric>
+    <metric>f-zone-214b</metric>
+    <metric>m-zone-215b</metric>
+    <metric>t-zone-215b</metric>
+    <metric>w-zone-215b</metric>
+    <metric>r-zone-215b</metric>
+    <metric>f-zone-215b</metric>
+    <metric>m-zone-216b</metric>
+    <metric>t-zone-216b</metric>
+    <metric>w-zone-216b</metric>
+    <metric>r-zone-216b</metric>
+    <metric>f-zone-216b</metric>
+    <metric>m-zone-217b</metric>
+    <metric>t-zone-217b</metric>
+    <metric>w-zone-217b</metric>
+    <metric>r-zone-217b</metric>
+    <metric>f-zone-217b</metric>
+    <metric>m-zone-218b</metric>
+    <metric>t-zone-218b</metric>
+    <metric>w-zone-218b</metric>
+    <metric>r-zone-218b</metric>
+    <metric>f-zone-218b</metric>
+    <metric>m-zone-219b</metric>
+    <metric>t-zone-219b</metric>
+    <metric>w-zone-219b</metric>
+    <metric>r-zone-219b</metric>
+    <metric>f-zone-219b</metric>
+    <metric>m-zone-220b</metric>
+    <metric>t-zone-220b</metric>
+    <metric>w-zone-220b</metric>
+    <metric>r-zone-220b</metric>
+    <metric>f-zone-220b</metric>
+    <metric>m-zone-221b</metric>
+    <metric>t-zone-221b</metric>
+    <metric>w-zone-221b</metric>
+    <metric>r-zone-221b</metric>
+    <metric>f-zone-221b</metric>
+    <metric>m-zone-0e</metric>
+    <metric>t-zone-0e</metric>
+    <metric>w-zone-0e</metric>
+    <metric>r-zone-0e</metric>
+    <metric>f-zone-0e</metric>
+    <metric>m-zone-3e</metric>
+    <metric>t-zone-3e</metric>
+    <metric>w-zone-3e</metric>
+    <metric>r-zone-3e</metric>
+    <metric>f-zone-3e</metric>
+    <metric>m-zone-4e</metric>
+    <metric>t-zone-4e</metric>
+    <metric>w-zone-4e</metric>
+    <metric>r-zone-4e</metric>
+    <metric>f-zone-4e</metric>
+    <metric>m-zone-20e</metric>
+    <metric>t-zone-20e</metric>
+    <metric>w-zone-20e</metric>
+    <metric>r-zone-20e</metric>
+    <metric>f-zone-20e</metric>
+    <metric>m-zone-26e</metric>
+    <metric>t-zone-26e</metric>
+    <metric>w-zone-26e</metric>
+    <metric>r-zone-26e</metric>
+    <metric>f-zone-26e</metric>
+    <metric>m-zone-29e</metric>
+    <metric>t-zone-29e</metric>
+    <metric>w-zone-29e</metric>
+    <metric>r-zone-29e</metric>
+    <metric>f-zone-29e</metric>
+    <metric>m-zone-30e</metric>
+    <metric>t-zone-30e</metric>
+    <metric>w-zone-30e</metric>
+    <metric>r-zone-30e</metric>
+    <metric>f-zone-30e</metric>
+    <metric>m-zone-31e</metric>
+    <metric>t-zone-31e</metric>
+    <metric>w-zone-31e</metric>
+    <metric>r-zone-31e</metric>
+    <metric>f-zone-31e</metric>
+    <metric>m-zone-38e</metric>
+    <metric>t-zone-38e</metric>
+    <metric>w-zone-38e</metric>
+    <metric>r-zone-38e</metric>
+    <metric>f-zone-38e</metric>
+    <metric>m-zone-78e</metric>
+    <metric>t-zone-78e</metric>
+    <metric>w-zone-78e</metric>
+    <metric>r-zone-78e</metric>
+    <metric>f-zone-78e</metric>
+    <metric>m-zone-116e</metric>
+    <metric>t-zone-116e</metric>
+    <metric>w-zone-116e</metric>
+    <metric>r-zone-116e</metric>
+    <metric>f-zone-116e</metric>
+    <metric>m-zone-134e</metric>
+    <metric>t-zone-134e</metric>
+    <metric>w-zone-134e</metric>
+    <metric>r-zone-134e</metric>
+    <metric>f-zone-134e</metric>
+    <metric>m-zone-166e</metric>
+    <metric>t-zone-166e</metric>
+    <metric>w-zone-166e</metric>
+    <metric>r-zone-166e</metric>
+    <metric>f-zone-166e</metric>
+    <metric>m-zone-186e</metric>
+    <metric>t-zone-186e</metric>
+    <metric>w-zone-186e</metric>
+    <metric>r-zone-186e</metric>
+    <metric>f-zone-186e</metric>
+    <metric>m-zone-187e</metric>
+    <metric>t-zone-187e</metric>
+    <metric>w-zone-187e</metric>
+    <metric>r-zone-187e</metric>
+    <metric>f-zone-187e</metric>
+    <metric>m-zone-188e</metric>
+    <metric>t-zone-188e</metric>
+    <metric>w-zone-188e</metric>
+    <metric>r-zone-188e</metric>
+    <metric>f-zone-188e</metric>
+    <metric>m-zone-190e</metric>
+    <metric>t-zone-190e</metric>
+    <metric>w-zone-190e</metric>
+    <metric>r-zone-190e</metric>
+    <metric>f-zone-190e</metric>
+    <metric>m-zone-191e</metric>
+    <metric>t-zone-191e</metric>
+    <metric>w-zone-191e</metric>
+    <metric>r-zone-191e</metric>
+    <metric>f-zone-191e</metric>
+    <metric>m-zone-193e</metric>
+    <metric>t-zone-193e</metric>
+    <metric>w-zone-193e</metric>
+    <metric>r-zone-193e</metric>
+    <metric>f-zone-193e</metric>
+    <metric>m-zone-194e</metric>
+    <metric>t-zone-194e</metric>
+    <metric>w-zone-194e</metric>
+    <metric>r-zone-194e</metric>
+    <metric>f-zone-194e</metric>
+    <metric>m-zone-195e</metric>
+    <metric>t-zone-195e</metric>
+    <metric>w-zone-195e</metric>
+    <metric>r-zone-195e</metric>
+    <metric>f-zone-195e</metric>
+    <metric>m-zone-196e</metric>
+    <metric>t-zone-196e</metric>
+    <metric>w-zone-196e</metric>
+    <metric>r-zone-196e</metric>
+    <metric>f-zone-196e</metric>
+    <metric>m-zone-197e</metric>
+    <metric>t-zone-197e</metric>
+    <metric>w-zone-197e</metric>
+    <metric>r-zone-197e</metric>
+    <metric>f-zone-197e</metric>
+    <metric>m-zone-198e</metric>
+    <metric>t-zone-198e</metric>
+    <metric>w-zone-198e</metric>
+    <metric>r-zone-198e</metric>
+    <metric>f-zone-198e</metric>
+    <metric>m-zone-199e</metric>
+    <metric>t-zone-199e</metric>
+    <metric>w-zone-199e</metric>
+    <metric>r-zone-199e</metric>
+    <metric>f-zone-199e</metric>
+    <metric>m-zone-200e</metric>
+    <metric>t-zone-200e</metric>
+    <metric>w-zone-200e</metric>
+    <metric>r-zone-200e</metric>
+    <metric>f-zone-200e</metric>
+    <metric>m-zone-201e</metric>
+    <metric>t-zone-201e</metric>
+    <metric>w-zone-201e</metric>
+    <metric>r-zone-201e</metric>
+    <metric>f-zone-201e</metric>
+    <metric>m-zone-202e</metric>
+    <metric>t-zone-202e</metric>
+    <metric>w-zone-202e</metric>
+    <metric>r-zone-202e</metric>
+    <metric>f-zone-202e</metric>
+    <metric>m-zone-203e</metric>
+    <metric>t-zone-203e</metric>
+    <metric>w-zone-203e</metric>
+    <metric>r-zone-203e</metric>
+    <metric>f-zone-203e</metric>
+    <metric>m-zone-204e</metric>
+    <metric>t-zone-204e</metric>
+    <metric>w-zone-204e</metric>
+    <metric>r-zone-204e</metric>
+    <metric>f-zone-204e</metric>
+    <metric>m-zone-205e</metric>
+    <metric>t-zone-205e</metric>
+    <metric>w-zone-205e</metric>
+    <metric>r-zone-205e</metric>
+    <metric>f-zone-205e</metric>
+    <metric>m-zone-206e</metric>
+    <metric>t-zone-206e</metric>
+    <metric>w-zone-206e</metric>
+    <metric>r-zone-206e</metric>
+    <metric>f-zone-206e</metric>
+    <metric>m-zone-207e</metric>
+    <metric>t-zone-207e</metric>
+    <metric>w-zone-207e</metric>
+    <metric>r-zone-207e</metric>
+    <metric>f-zone-207e</metric>
+    <metric>m-zone-208e</metric>
+    <metric>t-zone-208e</metric>
+    <metric>w-zone-208e</metric>
+    <metric>r-zone-208e</metric>
+    <metric>f-zone-208e</metric>
+    <metric>m-zone-209e</metric>
+    <metric>t-zone-209e</metric>
+    <metric>w-zone-209e</metric>
+    <metric>r-zone-209e</metric>
+    <metric>f-zone-209e</metric>
+    <metric>m-zone-210e</metric>
+    <metric>t-zone-210e</metric>
+    <metric>w-zone-210e</metric>
+    <metric>r-zone-210e</metric>
+    <metric>f-zone-210e</metric>
+    <metric>m-zone-211e</metric>
+    <metric>t-zone-211e</metric>
+    <metric>w-zone-211e</metric>
+    <metric>r-zone-211e</metric>
+    <metric>f-zone-211e</metric>
+    <metric>m-zone-212e</metric>
+    <metric>t-zone-212e</metric>
+    <metric>w-zone-212e</metric>
+    <metric>r-zone-212e</metric>
+    <metric>f-zone-212e</metric>
+    <metric>m-zone-213e</metric>
+    <metric>t-zone-213e</metric>
+    <metric>w-zone-213e</metric>
+    <metric>r-zone-213e</metric>
+    <metric>f-zone-213e</metric>
+    <metric>m-zone-214e</metric>
+    <metric>t-zone-214e</metric>
+    <metric>w-zone-214e</metric>
+    <metric>r-zone-214e</metric>
+    <metric>f-zone-214e</metric>
+    <metric>m-zone-215e</metric>
+    <metric>t-zone-215e</metric>
+    <metric>w-zone-215e</metric>
+    <metric>r-zone-215e</metric>
+    <metric>f-zone-215e</metric>
+    <metric>m-zone-216e</metric>
+    <metric>t-zone-216e</metric>
+    <metric>w-zone-216e</metric>
+    <metric>r-zone-216e</metric>
+    <metric>f-zone-216e</metric>
+    <metric>m-zone-217e</metric>
+    <metric>t-zone-217e</metric>
+    <metric>w-zone-217e</metric>
+    <metric>r-zone-217e</metric>
+    <metric>f-zone-217e</metric>
+    <metric>m-zone-218e</metric>
+    <metric>t-zone-218e</metric>
+    <metric>w-zone-218e</metric>
+    <metric>r-zone-218e</metric>
+    <metric>f-zone-218e</metric>
+    <metric>m-zone-219e</metric>
+    <metric>t-zone-219e</metric>
+    <metric>w-zone-219e</metric>
+    <metric>r-zone-219e</metric>
+    <metric>f-zone-219e</metric>
+    <metric>m-zone-220e</metric>
+    <metric>t-zone-220e</metric>
+    <metric>w-zone-220e</metric>
+    <metric>r-zone-220e</metric>
+    <metric>f-zone-220e</metric>
+    <metric>m-zone-221e</metric>
+    <metric>t-zone-221e</metric>
+    <metric>w-zone-221e</metric>
+    <metric>r-zone-221e</metric>
+    <metric>f-zone-221e</metric>
+    <metric>sample-week</metric>
+    <metric>sample-day</metric>
+    <enumeratedValueSet variable="random-seed">
+      <value value="4519"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="local-seed" first="1" step="1" last="1000"/>
+  </experiment>
+  <experiment name="1000_Runs_Partial_Prob_Interventions" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>spread-tc</metric>
+    <metric>m-crate-prevalence</metric>
+    <metric>t-crate-prevalence</metric>
+    <metric>w-crate-prevalence</metric>
+    <metric>r-crate-prevalence</metric>
+    <metric>f-crate-prevalence</metric>
+    <metric>food-conc</metric>
+    <metric>food-tc</metric>
+    <metric>zone4-load</metric>
+    <metric>random-load</metric>
+    <metric>m-san-reduction</metric>
+    <metric>t-san-reduction</metric>
+    <metric>w-san-reduction</metric>
+    <metric>r-san-reduction</metric>
+    <metric>f-san-reduction</metric>
+    <metric>a-san-reduction</metric>
+    <metric>prob-cleanable</metric>
+    <metric>mu-max</metric>
+    <metric>K</metric>
+    <metric>p-patch-spread</metric>
+    <metric>p-water-spread</metric>
+    <metric>p-food-dropped</metric>
+    <metric>p-condensation</metric>
+    <metric>p-random-noise</metric>
+    <metric>p-zone4-intro</metric>
+    <metric>p11</metric>
+    <metric>p12</metric>
+    <metric>p13</metric>
+    <metric>p14</metric>
+    <metric>p21</metric>
+    <metric>p22</metric>
+    <metric>p23</metric>
+    <metric>p24</metric>
+    <metric>p31</metric>
+    <metric>p32</metric>
+    <metric>p33</metric>
+    <metric>p34</metric>
+    <metric>p41</metric>
+    <metric>p42</metric>
+    <metric>p43</metric>
+    <metric>p44</metric>
+    <metric>tc11</metric>
+    <metric>tc12</metric>
+    <metric>tc13</metric>
+    <metric>tc14</metric>
+    <metric>tc21</metric>
+    <metric>tc22</metric>
+    <metric>tc23</metric>
+    <metric>tc24</metric>
+    <metric>tc31</metric>
+    <metric>tc32</metric>
+    <metric>tc33</metric>
+    <metric>tc34</metric>
+    <metric>tc41</metric>
+    <metric>tc42</metric>
+    <metric>tc43</metric>
+    <metric>tc44</metric>
+    <metric>initial-zone-prevalence</metric>
+    <metric>initial-contamination-level</metric>
+    <metric>zones-initial</metric>
+    <metric>z1-initial</metric>
+    <metric>z2-initial</metric>
+    <metric>z3-initial</metric>
+    <metric>p-initial</metric>
+    <metric>e-initial</metric>
+    <metric>m-zones-pre</metric>
+    <metric>t-zones-pre</metric>
+    <metric>w-zones-pre</metric>
+    <metric>r-zones-pre</metric>
+    <metric>f-zones-pre</metric>
+    <metric>m-zones-beg</metric>
+    <metric>t-zones-beg</metric>
+    <metric>w-zones-beg</metric>
+    <metric>r-zones-beg</metric>
+    <metric>f-zones-beg</metric>
+    <metric>m-zones-mid</metric>
+    <metric>t-zones-mid</metric>
+    <metric>w-zones-mid</metric>
+    <metric>r-zones-mid</metric>
+    <metric>f-zones-mid</metric>
+    <metric>m-zones-post</metric>
+    <metric>t-zones-post</metric>
+    <metric>w-zones-post</metric>
+    <metric>r-zones-post</metric>
+    <metric>f-zones-post</metric>
+    <metric>zone-to-zone</metric>
+    <metric>avg-listeria-transferred</metric>
+    <metric>zone-to-patch</metric>
+    <metric>condensation-drip</metric>
+    <metric>introduction-zone4</metric>
+    <metric>patch-to-patch</metric>
+    <metric>introduction-food</metric>
+    <metric>sum-food-load</metric>
+    <metric>sum-food-transfer</metric>
+    <metric>random-event</metric>
+    <metric>employee-fcs</metric>
+    <metric>nfcs-fcs</metric>
+    <metric>total-contam-events</metric>
+    <metric>m-random-event</metric>
+    <metric>t-random-event</metric>
+    <metric>w-random-event</metric>
+    <metric>r-random-event</metric>
+    <metric>f-random-event</metric>
+    <metric>median-z1-time</metric>
+    <metric>median-z2-time</metric>
+    <metric>median-z3-time</metric>
+    <metric>median-e-time</metric>
+    <metric>median-p-time</metric>
+    <metric>median-fwj-time</metric>
+    <metric>median-d-time</metric>
+    <metric>median-z1-max-contam-bout</metric>
+    <metric>median-z2-max-contam-bout</metric>
+    <metric>median-z3-max-contam-bout</metric>
+    <metric>median-e-max-contam-bout</metric>
+    <metric>median-p-max-contam-bout</metric>
+    <metric>median-d-max-contam-bout</metric>
+    <metric>median-fwj-max-contam-bout</metric>
+    <metric>temporary-niches</metric>
+    <metric>p-temp-niches</metric>
+    <metric>z1-temp-niches</metric>
+    <metric>z2-temp-niches</metric>
+    <metric>z3-temp-niches</metric>
+    <metric>z1-contacts</metric>
+    <metric>z2-contacts</metric>
+    <metric>z3-contacts</metric>
+    <metric>z1-transfers</metric>
+    <metric>z2-transfers</metric>
+    <metric>z3-transfers</metric>
+    <metric>z-sample-beg-prev</metric>
+    <metric>z-sample-mid-prev</metric>
+    <metric>z-sample-post-prev</metric>
+    <metric>z1-prev</metric>
+    <metric>z2-prev</metric>
+    <metric>z3-prev</metric>
+    <metric>m-z-all</metric>
+    <metric>m-z-all-employees</metric>
+    <metric>t-z-all</metric>
+    <metric>t-z-all-employees</metric>
+    <metric>w-z-all</metric>
+    <metric>w-z-all-employees</metric>
+    <metric>mid-all</metric>
+    <metric>mid-all-employees</metric>
+    <metric>z1-all</metric>
+    <metric>z1-all-employees</metric>
+    <metric>z2-all</metric>
+    <metric>z2-all-employees</metric>
+    <metric>z3-all</metric>
+    <metric>z3-all-employees</metric>
+    <metric>z1-conc-time-list</metric>
+    <metric>z1-conc-time-cleanable-list</metric>
+    <metric>z1-conc-time-uncleanable-list</metric>
+    <metric>z2-conc-time-list</metric>
+    <metric>z2-conc-time-cleanable-list</metric>
+    <metric>z2-conc-time-uncleanable-list</metric>
+    <metric>z3-conc-time-list</metric>
+    <metric>z3-conc-time-cleanable-list</metric>
+    <metric>z3-conc-time-uncleanable-list</metric>
+    <metric>cleaning-all</metric>
+    <metric>cleaning-all-employees</metric>
+    <metric>drying-all</metric>
+    <metric>drying-all-employees</metric>
+    <metric>loading-all</metric>
+    <metric>loading-all-employees</metric>
+    <metric>reject-all</metric>
+    <metric>reject-all-employees</metric>
+    <metric>sorting-all</metric>
+    <metric>sorting-all-employees</metric>
+    <metric>tray-packing-all</metric>
+    <metric>tray-packing-all-employees</metric>
+    <metric>other-all</metric>
+    <metric>other-all-employees</metric>
+    <metric>cleaning-conc-list</metric>
+    <metric>drying-conc-list</metric>
+    <metric>loading-conc-list</metric>
+    <metric>reject-conc-list</metric>
+    <metric>sorting-conc-list</metric>
+    <metric>tray-packing-conc-list</metric>
+    <metric>other-conc-list</metric>
+    <metric>cleaning-conc-time-list</metric>
+    <metric>drying-conc-time-list</metric>
+    <metric>loading-conc-time-list</metric>
+    <metric>reject-conc-time-list</metric>
+    <metric>sorting-conc-time-list</metric>
+    <metric>tray-packing-conc-time-list</metric>
+    <metric>other-conc-time-list</metric>
+    <metric>cleaning-conc-time-cleanable-list</metric>
+    <metric>drying-conc-time-cleanable-list</metric>
+    <metric>loading-conc-time-cleanable-list</metric>
+    <metric>reject-conc-time-cleanable-list</metric>
+    <metric>sorting-conc-time-cleanable-list</metric>
+    <metric>other-conc-time-cleanable-list</metric>
+    <metric>cleaning-conc-time-uncleanable-list</metric>
+    <metric>drying-conc-time-uncleanable-list</metric>
+    <metric>loading-conc-time-uncleanable-list</metric>
+    <metric>reject-conc-time-uncleanable-list</metric>
+    <metric>sorting-conc-time-uncleanable-list</metric>
+    <metric>other-conc-time-uncleanable-list</metric>
+    <metric>cleaning-niche-time-list</metric>
+    <metric>drying-niche-time-list</metric>
+    <metric>loading-niche-time-list</metric>
+    <metric>reject-niche-time-list</metric>
+    <metric>sorting-niche-time-list</metric>
+    <metric>tray-packing-niche-time-list</metric>
+    <metric>other-niche-time-list</metric>
+    <metric>cleaning-niche-length-list</metric>
+    <metric>drying-niche-length-list</metric>
+    <metric>loading-niche-length-list</metric>
+    <metric>reject-niche-length-list</metric>
+    <metric>sorting-niche-length-list</metric>
+    <metric>tray-packing-niche-length-list</metric>
+    <metric>other-niche-length-list</metric>
+    <metric>w2wed-count-list</metric>
+    <metric>w2wed-conc-list</metric>
+    <metric>w2wed-time-contaminated-list</metric>
+    <metric>w2wed-max-contam-bout-list</metric>
+    <metric>w2wed-contacts-list</metric>
+    <metric>w2wed-transfers-list</metric>
+    <metric>cleaning-w2wed-count-list</metric>
+    <metric>drying-w2wed-count-list</metric>
+    <metric>loading-w2wed-count-list</metric>
+    <metric>reject-w2wed-count-list</metric>
+    <metric>sorting-w2wed-count-list</metric>
+    <metric>tray-packing-w2wed-count-list</metric>
+    <metric>other-w2wed-count-list</metric>
+    <metric>z1-w2wed-count-list</metric>
+    <metric>z2-w2wed-count-list</metric>
+    <metric>z3-w2wed-count-list</metric>
+    <metric>z1-w2wed-pre-count-list</metric>
+    <metric>z2-w2wed-pre-count-list</metric>
+    <metric>z3-w2wed-pre-count-list</metric>
+    <metric>z1-w2wed-beg-count-list</metric>
+    <metric>z2-w2wed-beg-count-list</metric>
+    <metric>z3-w2wed-beg-count-list</metric>
+    <metric>z1-w2wed-end-count-list</metric>
+    <metric>z2-w2wed-end-count-list</metric>
+    <metric>z3-w2wed-end-count-list</metric>
+    <metric>cleanable-w2wed-count-list</metric>
+    <metric>uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-count-list</metric>
+    <metric>drying-z1-cleanable-w2wed-count-list</metric>
+    <metric>loading-z1-cleanable-w2wed-count-list</metric>
+    <metric>reject-z1-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-count-list</metric>
+    <metric>other-z1-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-count-list</metric>
+    <metric>drying-z2-cleanable-w2wed-count-list</metric>
+    <metric>loading-z2-cleanable-w2wed-count-list</metric>
+    <metric>reject-z2-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-count-list</metric>
+    <metric>other-z2-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-count-list</metric>
+    <metric>drying-z3-cleanable-w2wed-count-list</metric>
+    <metric>loading-z3-cleanable-w2wed-count-list</metric>
+    <metric>reject-z3-cleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-count-list</metric>
+    <metric>other-z3-cleanable-w2wed-count-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-count-list</metric>
+    <metric>other-z1-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-count-list</metric>
+    <metric>other-z2-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-count-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-count-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-count-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-count-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-count-list</metric>
+    <metric>other-z3-uncleanable-w2wed-count-list</metric>
+    <metric>cleaning-w2wed-conc-list</metric>
+    <metric>drying-w2wed-conc-list</metric>
+    <metric>loading-w2wed-conc-list</metric>
+    <metric>reject-w2wed-conc-list</metric>
+    <metric>sorting-w2wed-conc-list</metric>
+    <metric>tray-packing-w2wed-conc-list</metric>
+    <metric>other-w2wed-conc-list</metric>
+    <metric>z1-w2wed-conc-list</metric>
+    <metric>z2-w2wed-conc-list</metric>
+    <metric>z3-w2wed-conc-list</metric>
+    <metric>z1-w2wed-pre-conc-list</metric>
+    <metric>z2-w2wed-pre-conc-list</metric>
+    <metric>z3-w2wed-pre-conc-list</metric>
+    <metric>z1-w2wed-beg-conc-list</metric>
+    <metric>z2-w2wed-beg-conc-list</metric>
+    <metric>z3-w2wed-beg-conc-list</metric>
+    <metric>z1-w2wed-end-conc-list</metric>
+    <metric>z2-w2wed-end-conc-list</metric>
+    <metric>z3-w2wed-end-conc-list</metric>
+    <metric>cleanable-w2wed-conc-list</metric>
+    <metric>uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-cleanable-w2wed-conc-list</metric>
+    <metric>other-z1-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-cleanable-w2wed-conc-list</metric>
+    <metric>other-z2-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-cleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-cleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-cleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-cleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-cleanable-w2wed-conc-list</metric>
+    <metric>other-z3-cleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z1-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z2-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>drying-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>loading-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>reject-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>sorting-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>other-z3-uncleanable-w2wed-conc-list</metric>
+    <metric>cleaning-w2wed-prev</metric>
+    <metric>drying-w2wed-prev</metric>
+    <metric>loading-w2wed-prev</metric>
+    <metric>reject-w2wed-prev</metric>
+    <metric>sorting-w2wed-prev</metric>
+    <metric>tray-packing-w2wed-prev</metric>
+    <metric>other-w2wed-prev</metric>
+    <metric>z1-w2wed-prev</metric>
+    <metric>z2-w2wed-prev</metric>
+    <metric>z3-w2wed-prev</metric>
+    <metric>z1-w2wed-pre-prev</metric>
+    <metric>z2-w2wed-pre-prev</metric>
+    <metric>z3-w2wed-pre-prev</metric>
+    <metric>z1-w2wed-beg-prev</metric>
+    <metric>z2-w2wed-beg-prev</metric>
+    <metric>z3-w2wed-beg-prev</metric>
+    <metric>z1-w2wed-end-prev</metric>
+    <metric>z2-w2wed-end-prev</metric>
+    <metric>z3-w2wed-end-prev</metric>
+    <metric>cleanable-w2wed-prev</metric>
+    <metric>uncleanable-w2wed-prev</metric>
+    <metric>cleaning-cleanable-w2wed-prev</metric>
+    <metric>drying-cleanable-w2wed-prev</metric>
+    <metric>loading-cleanable-w2wed-prev</metric>
+    <metric>reject-cleanable-w2wed-prev</metric>
+    <metric>sorting-cleanable-w2wed-prev</metric>
+    <metric>other-cleanable-w2wed-prev</metric>
+    <metric>cleaning-uncleanable-w2wed-prev</metric>
+    <metric>drying-uncleanable-w2wed-prev</metric>
+    <metric>loading-uncleanable-w2wed-prev</metric>
+    <metric>reject-uncleanable-w2wed-prev</metric>
+    <metric>sorting-uncleanable-w2wed-prev</metric>
+    <metric>other-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-w2wed-prev</metric>
+    <metric>drying-z1-w2wed-prev</metric>
+    <metric>loading-z1-w2wed-prev</metric>
+    <metric>reject-z1-w2wed-prev</metric>
+    <metric>sorting-z1-w2wed-prev</metric>
+    <metric>other-z1-w2wed-prev</metric>
+    <metric>cleaning-z2-w2wed-prev</metric>
+    <metric>drying-z2-w2wed-prev</metric>
+    <metric>loading-z2-w2wed-prev</metric>
+    <metric>reject-z2-w2wed-prev</metric>
+    <metric>sorting-z2-w2wed-prev</metric>
+    <metric>other-z2-w2wed-prev</metric>
+    <metric>cleaning-z3-w2wed-prev</metric>
+    <metric>drying-z3-w2wed-prev</metric>
+    <metric>loading-z3-w2wed-prev</metric>
+    <metric>reject-z3-w2wed-prev</metric>
+    <metric>sorting-z3-w2wed-prev</metric>
+    <metric>other-z3-w2wed-prev</metric>
+    <metric>cleanable-z1-w2wed-prev</metric>
+    <metric>cleanable-z2-w2wed-prev</metric>
+    <metric>cleanable-z3-w2wed-prev</metric>
+    <metric>uncleanable-z1-w2wed-prev</metric>
+    <metric>uncleanable-z2-w2wed-prev</metric>
+    <metric>uncleanable-z3-w2wed-prev</metric>
+    <metric>cleaning-z1-cleanable-w2wed-prev</metric>
+    <metric>drying-z1-cleanable-w2wed-prev</metric>
+    <metric>loading-z1-cleanable-w2wed-prev</metric>
+    <metric>reject-z1-cleanable-w2wed-prev</metric>
+    <metric>sorting-z1-cleanable-w2wed-prev</metric>
+    <metric>other-z1-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-cleanable-w2wed-prev</metric>
+    <metric>drying-z2-cleanable-w2wed-prev</metric>
+    <metric>loading-z2-cleanable-w2wed-prev</metric>
+    <metric>reject-z2-cleanable-w2wed-prev</metric>
+    <metric>sorting-z2-cleanable-w2wed-prev</metric>
+    <metric>other-z2-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-cleanable-w2wed-prev</metric>
+    <metric>drying-z3-cleanable-w2wed-prev</metric>
+    <metric>loading-z3-cleanable-w2wed-prev</metric>
+    <metric>reject-z3-cleanable-w2wed-prev</metric>
+    <metric>sorting-z3-cleanable-w2wed-prev</metric>
+    <metric>other-z3-cleanable-w2wed-prev</metric>
+    <metric>cleaning-z1-uncleanable-w2wed-prev</metric>
+    <metric>drying-z1-uncleanable-w2wed-prev</metric>
+    <metric>loading-z1-uncleanable-w2wed-prev</metric>
+    <metric>reject-z1-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z1-uncleanable-w2wed-prev</metric>
+    <metric>other-z1-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z2-uncleanable-w2wed-prev</metric>
+    <metric>drying-z2-uncleanable-w2wed-prev</metric>
+    <metric>loading-z2-uncleanable-w2wed-prev</metric>
+    <metric>reject-z2-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z2-uncleanable-w2wed-prev</metric>
+    <metric>other-z2-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-z3-uncleanable-w2wed-prev</metric>
+    <metric>drying-z3-uncleanable-w2wed-prev</metric>
+    <metric>loading-z3-uncleanable-w2wed-prev</metric>
+    <metric>reject-z3-uncleanable-w2wed-prev</metric>
+    <metric>sorting-z3-uncleanable-w2wed-prev</metric>
+    <metric>other-z3-uncleanable-w2wed-prev</metric>
+    <metric>cleaning-total-prev</metric>
+    <metric>drying-total-prev</metric>
+    <metric>loading-total-prev</metric>
+    <metric>reject-total-prev</metric>
+    <metric>sorting-total-prev</metric>
+    <metric>tray-packing-total-prev</metric>
+    <metric>other-total-prev</metric>
+    <metric>concentration-list</metric>
+    <metric>time-contaminated-list</metric>
+    <metric>max-contam-bout-list</metric>
+    <metric>contacts-list</metric>
+    <metric>transfers-list</metric>
+    <metric>temp-niche-list</metric>
+    <metric>niches-estab-list</metric>
+    <metric>food-cont-list</metric>
+    <metric>zone4-cont-list</metric>
+    <metric>random-cont-list</metric>
+    <metric>random-event-list</metric>
+    <metric>cluster-conc-mid-mon-list</metric>
+    <metric>cluster-conc-mid-tue-list</metric>
+    <metric>cluster-conc-mid-wed-list</metric>
+    <metric>cluster-conc-mid-thu-list</metric>
+    <metric>cluster-conc-mid-fri-list</metric>
+    <metric>cluster-conc-mid-mon-median-list</metric>
+    <metric>cluster-conc-mid-tue-median-list</metric>
+    <metric>cluster-conc-mid-wed-median-list</metric>
+    <metric>cluster-conc-mid-thu-median-list</metric>
+    <metric>cluster-conc-mid-fri-median-list</metric>
+    <metric>cluster-conc-mid-mon-mean-list</metric>
+    <metric>cluster-conc-mid-tue-mean-list</metric>
+    <metric>cluster-conc-mid-wed-mean-list</metric>
+    <metric>cluster-conc-mid-thu-mean-list</metric>
+    <metric>cluster-conc-mid-fri-mean-list</metric>
+    <metric>m-z1-pre</metric>
+    <metric>t-z1-pre</metric>
+    <metric>w-z1-pre</metric>
+    <metric>r-z1-pre</metric>
+    <metric>f-z1-pre</metric>
+    <metric>m-z2-pre</metric>
+    <metric>t-z2-pre</metric>
+    <metric>w-z2-pre</metric>
+    <metric>r-z2-pre</metric>
+    <metric>f-z2-pre</metric>
+    <metric>m-z3-pre</metric>
+    <metric>t-z3-pre</metric>
+    <metric>w-z3-pre</metric>
+    <metric>r-z3-pre</metric>
+    <metric>f-z3-pre</metric>
+    <metric>m-p-pre</metric>
+    <metric>t-p-pre</metric>
+    <metric>w-p-pre</metric>
+    <metric>r-p-pre</metric>
+    <metric>f-p-pre</metric>
+    <metric>m-e-pre</metric>
+    <metric>t-e-pre</metric>
+    <metric>w-e-pre</metric>
+    <metric>r-e-pre</metric>
+    <metric>f-e-pre</metric>
+    <metric>m-z1-beg</metric>
+    <metric>t-z1-beg</metric>
+    <metric>w-z1-beg</metric>
+    <metric>r-z1-beg</metric>
+    <metric>f-z1-beg</metric>
+    <metric>m-z2-beg</metric>
+    <metric>t-z2-beg</metric>
+    <metric>w-z2-beg</metric>
+    <metric>r-z2-beg</metric>
+    <metric>f-z2-beg</metric>
+    <metric>m-z3-beg</metric>
+    <metric>t-z3-beg</metric>
+    <metric>w-z3-beg</metric>
+    <metric>r-z3-beg</metric>
+    <metric>f-z3-beg</metric>
+    <metric>m-p-beg</metric>
+    <metric>t-p-beg</metric>
+    <metric>w-p-beg</metric>
+    <metric>r-p-beg</metric>
+    <metric>f-p-beg</metric>
+    <metric>m-e-beg</metric>
+    <metric>t-e-beg</metric>
+    <metric>w-e-beg</metric>
+    <metric>r-e-beg</metric>
+    <metric>f-e-beg</metric>
+    <metric>m-z1-mid</metric>
+    <metric>t-z1-mid</metric>
+    <metric>w-z1-mid</metric>
+    <metric>r-z1-mid</metric>
+    <metric>f-z1-mid</metric>
+    <metric>m-z2-mid</metric>
+    <metric>t-z2-mid</metric>
+    <metric>w-z2-mid</metric>
+    <metric>r-z2-mid</metric>
+    <metric>f-z2-mid</metric>
+    <metric>m-z3-mid</metric>
+    <metric>t-z3-mid</metric>
+    <metric>w-z3-mid</metric>
+    <metric>r-z3-mid</metric>
+    <metric>f-z3-mid</metric>
+    <metric>m-p-mid</metric>
+    <metric>t-p-mid</metric>
+    <metric>w-p-mid</metric>
+    <metric>r-p-mid</metric>
+    <metric>f-p-mid</metric>
+    <metric>m-e-mid</metric>
+    <metric>t-e-mid</metric>
+    <metric>w-e-mid</metric>
+    <metric>r-e-mid</metric>
+    <metric>f-e-mid</metric>
+    <metric>m-z1-post</metric>
+    <metric>t-z1-post</metric>
+    <metric>w-z1-post</metric>
+    <metric>r-z1-post</metric>
+    <metric>f-z1-post</metric>
+    <metric>m-z2-post</metric>
+    <metric>t-z2-post</metric>
+    <metric>w-z2-post</metric>
+    <metric>r-z2-post</metric>
+    <metric>f-z2-post</metric>
+    <metric>m-z3-post</metric>
+    <metric>t-z3-post</metric>
+    <metric>w-z3-post</metric>
+    <metric>r-z3-post</metric>
+    <metric>f-z3-post</metric>
+    <metric>m-p-post</metric>
+    <metric>t-p-post</metric>
+    <metric>w-p-post</metric>
+    <metric>r-p-post</metric>
+    <metric>f-p-post</metric>
+    <metric>m-e-post</metric>
+    <metric>t-e-post</metric>
+    <metric>w-e-post</metric>
+    <metric>r-e-post</metric>
+    <metric>f-e-post</metric>
+    <metric>crack</metric>
+    <metric>m-z1-conc-pre</metric>
+    <metric>t-z1-conc-pre</metric>
+    <metric>w-z1-conc-pre</metric>
+    <metric>r-z1-conc-pre</metric>
+    <metric>f-z1-conc-pre</metric>
+    <metric>m-z2-conc-pre</metric>
+    <metric>t-z2-conc-pre</metric>
+    <metric>w-z2-conc-pre</metric>
+    <metric>r-z2-conc-pre</metric>
+    <metric>f-z2-conc-pre</metric>
+    <metric>m-z3-conc-pre</metric>
+    <metric>t-z3-conc-pre</metric>
+    <metric>w-z3-conc-pre</metric>
+    <metric>r-z3-conc-pre</metric>
+    <metric>f-z3-conc-pre</metric>
+    <metric>m-p-conc-pre</metric>
+    <metric>t-p-conc-pre</metric>
+    <metric>w-p-conc-pre</metric>
+    <metric>r-p-conc-pre</metric>
+    <metric>f-p-conc-pre</metric>
+    <metric>m-e-conc-pre</metric>
+    <metric>t-e-conc-pre</metric>
+    <metric>w-e-conc-pre</metric>
+    <metric>r-e-conc-pre</metric>
+    <metric>f-e-conc-pre</metric>
+    <metric>m-z1-conc-mid</metric>
+    <metric>t-z1-conc-mid</metric>
+    <metric>w-z1-conc-mid</metric>
+    <metric>r-z1-conc-mid</metric>
+    <metric>f-z1-conc-mid</metric>
+    <metric>m-z2-conc-mid</metric>
+    <metric>t-z2-conc-mid</metric>
+    <metric>w-z2-conc-mid</metric>
+    <metric>r-z2-conc-mid</metric>
+    <metric>f-z2-conc-mid</metric>
+    <metric>m-z3-conc-mid</metric>
+    <metric>t-z3-conc-mid</metric>
+    <metric>w-z3-conc-mid</metric>
+    <metric>r-z3-conc-mid</metric>
+    <metric>f-z3-conc-mid</metric>
+    <metric>m-p-conc-mid</metric>
+    <metric>t-p-conc-mid</metric>
+    <metric>w-p-conc-mid</metric>
+    <metric>r-p-conc-mid</metric>
+    <metric>f-p-conc-mid</metric>
+    <metric>m-e-conc-mid</metric>
+    <metric>t-e-conc-mid</metric>
+    <metric>w-e-conc-mid</metric>
+    <metric>r-e-conc-mid</metric>
+    <metric>f-e-conc-mid</metric>
+    <metric>m-z1-conc-post</metric>
+    <metric>t-z1-conc-post</metric>
+    <metric>w-z1-conc-post</metric>
+    <metric>r-z1-conc-post</metric>
+    <metric>f-z1-conc-post</metric>
+    <metric>m-z2-conc-post</metric>
+    <metric>t-z2-conc-post</metric>
+    <metric>w-z2-conc-post</metric>
+    <metric>r-z2-conc-post</metric>
+    <metric>f-z2-conc-post</metric>
+    <metric>m-z3-conc-post</metric>
+    <metric>t-z3-conc-post</metric>
+    <metric>w-z3-conc-post</metric>
+    <metric>r-z3-conc-post</metric>
+    <metric>f-z3-conc-post</metric>
+    <metric>m-p-conc-post</metric>
+    <metric>t-p-conc-post</metric>
+    <metric>w-p-conc-post</metric>
+    <metric>r-p-conc-post</metric>
+    <metric>f-p-conc-post</metric>
+    <metric>m-e-conc-post</metric>
+    <metric>t-e-conc-post</metric>
+    <metric>w-e-conc-post</metric>
+    <metric>r-e-conc-post</metric>
+    <metric>f-e-conc-post</metric>
+    <metric>m-z-sample-prev</metric>
+    <metric>t-z-sample-prev</metric>
+    <metric>w-z-sample-prev</metric>
+    <metric>r-z-sample-prev</metric>
+    <metric>f-z-sample-prev</metric>
+    <metric>m-z-prev</metric>
+    <metric>t-z-prev</metric>
+    <metric>w-z-prev</metric>
+    <metric>r-z-prev</metric>
+    <metric>f-z-prev</metric>
+    <metric>fcs-prev</metric>
+    <metric>total-fcs</metric>
+    <metric>nfcs-prev</metric>
+    <metric>total-nfcs</metric>
+    <metric>m-zone-0b</metric>
+    <metric>t-zone-0b</metric>
+    <metric>w-zone-0b</metric>
+    <metric>r-zone-0b</metric>
+    <metric>f-zone-0b</metric>
+    <metric>m-zone-3b</metric>
+    <metric>t-zone-3b</metric>
+    <metric>w-zone-3b</metric>
+    <metric>r-zone-3b</metric>
+    <metric>f-zone-3b</metric>
+    <metric>m-zone-4b</metric>
+    <metric>t-zone-4b</metric>
+    <metric>w-zone-4b</metric>
+    <metric>r-zone-4b</metric>
+    <metric>f-zone-4b</metric>
+    <metric>m-zone-20b</metric>
+    <metric>t-zone-20b</metric>
+    <metric>w-zone-20b</metric>
+    <metric>r-zone-20b</metric>
+    <metric>f-zone-20b</metric>
+    <metric>m-zone-26b</metric>
+    <metric>t-zone-26b</metric>
+    <metric>w-zone-26b</metric>
+    <metric>r-zone-26b</metric>
+    <metric>f-zone-26b</metric>
+    <metric>m-zone-29b</metric>
+    <metric>t-zone-29b</metric>
+    <metric>w-zone-29b</metric>
+    <metric>r-zone-29b</metric>
+    <metric>f-zone-29b</metric>
+    <metric>m-zone-30b</metric>
+    <metric>t-zone-30b</metric>
+    <metric>w-zone-30b</metric>
+    <metric>r-zone-30b</metric>
+    <metric>f-zone-30b</metric>
+    <metric>m-zone-31b</metric>
+    <metric>t-zone-31b</metric>
+    <metric>w-zone-31b</metric>
+    <metric>r-zone-31b</metric>
+    <metric>f-zone-31b</metric>
+    <metric>m-zone-38b</metric>
+    <metric>t-zone-38b</metric>
+    <metric>w-zone-38b</metric>
+    <metric>r-zone-38b</metric>
+    <metric>f-zone-38b</metric>
+    <metric>m-zone-78b</metric>
+    <metric>t-zone-78b</metric>
+    <metric>w-zone-78b</metric>
+    <metric>r-zone-78b</metric>
+    <metric>f-zone-78b</metric>
+    <metric>m-zone-116b</metric>
+    <metric>t-zone-116b</metric>
+    <metric>w-zone-116b</metric>
+    <metric>r-zone-116b</metric>
+    <metric>f-zone-116b</metric>
+    <metric>m-zone-134b</metric>
+    <metric>t-zone-134b</metric>
+    <metric>w-zone-134b</metric>
+    <metric>r-zone-134b</metric>
+    <metric>f-zone-134b</metric>
+    <metric>m-zone-166b</metric>
+    <metric>t-zone-166b</metric>
+    <metric>w-zone-166b</metric>
+    <metric>r-zone-166b</metric>
+    <metric>f-zone-166b</metric>
+    <metric>m-zone-186b</metric>
+    <metric>t-zone-186b</metric>
+    <metric>w-zone-186b</metric>
+    <metric>r-zone-186b</metric>
+    <metric>f-zone-186b</metric>
+    <metric>m-zone-187b</metric>
+    <metric>t-zone-187b</metric>
+    <metric>w-zone-187b</metric>
+    <metric>r-zone-187b</metric>
+    <metric>f-zone-187b</metric>
+    <metric>m-zone-188b</metric>
+    <metric>t-zone-188b</metric>
+    <metric>w-zone-188b</metric>
+    <metric>r-zone-188b</metric>
+    <metric>f-zone-188b</metric>
+    <metric>m-zone-190b</metric>
+    <metric>t-zone-190b</metric>
+    <metric>w-zone-190b</metric>
+    <metric>r-zone-190b</metric>
+    <metric>f-zone-190b</metric>
+    <metric>m-zone-191b</metric>
+    <metric>t-zone-191b</metric>
+    <metric>w-zone-191b</metric>
+    <metric>r-zone-191b</metric>
+    <metric>f-zone-191b</metric>
+    <metric>m-zone-193b</metric>
+    <metric>t-zone-193b</metric>
+    <metric>w-zone-193b</metric>
+    <metric>r-zone-193b</metric>
+    <metric>f-zone-193b</metric>
+    <metric>m-zone-194b</metric>
+    <metric>t-zone-194b</metric>
+    <metric>w-zone-194b</metric>
+    <metric>r-zone-194b</metric>
+    <metric>f-zone-194b</metric>
+    <metric>m-zone-195b</metric>
+    <metric>t-zone-195b</metric>
+    <metric>w-zone-195b</metric>
+    <metric>r-zone-195b</metric>
+    <metric>f-zone-195b</metric>
+    <metric>m-zone-196b</metric>
+    <metric>t-zone-196b</metric>
+    <metric>w-zone-196b</metric>
+    <metric>r-zone-196b</metric>
+    <metric>f-zone-196b</metric>
+    <metric>m-zone-197b</metric>
+    <metric>t-zone-197b</metric>
+    <metric>w-zone-197b</metric>
+    <metric>r-zone-197b</metric>
+    <metric>f-zone-197b</metric>
+    <metric>m-zone-198b</metric>
+    <metric>t-zone-198b</metric>
+    <metric>w-zone-198b</metric>
+    <metric>r-zone-198b</metric>
+    <metric>f-zone-198b</metric>
+    <metric>m-zone-199b</metric>
+    <metric>t-zone-199b</metric>
+    <metric>w-zone-199b</metric>
+    <metric>r-zone-199b</metric>
+    <metric>f-zone-199b</metric>
+    <metric>m-zone-200b</metric>
+    <metric>t-zone-200b</metric>
+    <metric>w-zone-200b</metric>
+    <metric>r-zone-200b</metric>
+    <metric>f-zone-200b</metric>
+    <metric>m-zone-201b</metric>
+    <metric>t-zone-201b</metric>
+    <metric>w-zone-201b</metric>
+    <metric>r-zone-201b</metric>
+    <metric>f-zone-201b</metric>
+    <metric>m-zone-202b</metric>
+    <metric>t-zone-202b</metric>
+    <metric>w-zone-202b</metric>
+    <metric>r-zone-202b</metric>
+    <metric>f-zone-202b</metric>
+    <metric>m-zone-203b</metric>
+    <metric>t-zone-203b</metric>
+    <metric>w-zone-203b</metric>
+    <metric>r-zone-203b</metric>
+    <metric>f-zone-203b</metric>
+    <metric>m-zone-204b</metric>
+    <metric>t-zone-204b</metric>
+    <metric>w-zone-204b</metric>
+    <metric>r-zone-204b</metric>
+    <metric>f-zone-204b</metric>
+    <metric>m-zone-205b</metric>
+    <metric>t-zone-205b</metric>
+    <metric>w-zone-205b</metric>
+    <metric>r-zone-205b</metric>
+    <metric>f-zone-205b</metric>
+    <metric>m-zone-206b</metric>
+    <metric>t-zone-206b</metric>
+    <metric>w-zone-206b</metric>
+    <metric>r-zone-206b</metric>
+    <metric>f-zone-206b</metric>
+    <metric>m-zone-207b</metric>
+    <metric>t-zone-207b</metric>
+    <metric>w-zone-207b</metric>
+    <metric>r-zone-207b</metric>
+    <metric>f-zone-207b</metric>
+    <metric>m-zone-208b</metric>
+    <metric>t-zone-208b</metric>
+    <metric>w-zone-208b</metric>
+    <metric>r-zone-208b</metric>
+    <metric>f-zone-208b</metric>
+    <metric>m-zone-209b</metric>
+    <metric>t-zone-209b</metric>
+    <metric>w-zone-209b</metric>
+    <metric>r-zone-209b</metric>
+    <metric>f-zone-209b</metric>
+    <metric>m-zone-210b</metric>
+    <metric>t-zone-210b</metric>
+    <metric>w-zone-210b</metric>
+    <metric>r-zone-210b</metric>
+    <metric>f-zone-210b</metric>
+    <metric>m-zone-211b</metric>
+    <metric>t-zone-211b</metric>
+    <metric>w-zone-211b</metric>
+    <metric>r-zone-211b</metric>
+    <metric>f-zone-211b</metric>
+    <metric>m-zone-212b</metric>
+    <metric>t-zone-212b</metric>
+    <metric>w-zone-212b</metric>
+    <metric>r-zone-212b</metric>
+    <metric>f-zone-212b</metric>
+    <metric>m-zone-213b</metric>
+    <metric>t-zone-213b</metric>
+    <metric>w-zone-213b</metric>
+    <metric>r-zone-213b</metric>
+    <metric>f-zone-213b</metric>
+    <metric>m-zone-214b</metric>
+    <metric>t-zone-214b</metric>
+    <metric>w-zone-214b</metric>
+    <metric>r-zone-214b</metric>
+    <metric>f-zone-214b</metric>
+    <metric>m-zone-215b</metric>
+    <metric>t-zone-215b</metric>
+    <metric>w-zone-215b</metric>
+    <metric>r-zone-215b</metric>
+    <metric>f-zone-215b</metric>
+    <metric>m-zone-216b</metric>
+    <metric>t-zone-216b</metric>
+    <metric>w-zone-216b</metric>
+    <metric>r-zone-216b</metric>
+    <metric>f-zone-216b</metric>
+    <metric>m-zone-217b</metric>
+    <metric>t-zone-217b</metric>
+    <metric>w-zone-217b</metric>
+    <metric>r-zone-217b</metric>
+    <metric>f-zone-217b</metric>
+    <metric>m-zone-218b</metric>
+    <metric>t-zone-218b</metric>
+    <metric>w-zone-218b</metric>
+    <metric>r-zone-218b</metric>
+    <metric>f-zone-218b</metric>
+    <metric>m-zone-219b</metric>
+    <metric>t-zone-219b</metric>
+    <metric>w-zone-219b</metric>
+    <metric>r-zone-219b</metric>
+    <metric>f-zone-219b</metric>
+    <metric>m-zone-220b</metric>
+    <metric>t-zone-220b</metric>
+    <metric>w-zone-220b</metric>
+    <metric>r-zone-220b</metric>
+    <metric>f-zone-220b</metric>
+    <metric>m-zone-221b</metric>
+    <metric>t-zone-221b</metric>
+    <metric>w-zone-221b</metric>
+    <metric>r-zone-221b</metric>
+    <metric>f-zone-221b</metric>
+    <metric>m-zone-0e</metric>
+    <metric>t-zone-0e</metric>
+    <metric>w-zone-0e</metric>
+    <metric>r-zone-0e</metric>
+    <metric>f-zone-0e</metric>
+    <metric>m-zone-3e</metric>
+    <metric>t-zone-3e</metric>
+    <metric>w-zone-3e</metric>
+    <metric>r-zone-3e</metric>
+    <metric>f-zone-3e</metric>
+    <metric>m-zone-4e</metric>
+    <metric>t-zone-4e</metric>
+    <metric>w-zone-4e</metric>
+    <metric>r-zone-4e</metric>
+    <metric>f-zone-4e</metric>
+    <metric>m-zone-20e</metric>
+    <metric>t-zone-20e</metric>
+    <metric>w-zone-20e</metric>
+    <metric>r-zone-20e</metric>
+    <metric>f-zone-20e</metric>
+    <metric>m-zone-26e</metric>
+    <metric>t-zone-26e</metric>
+    <metric>w-zone-26e</metric>
+    <metric>r-zone-26e</metric>
+    <metric>f-zone-26e</metric>
+    <metric>m-zone-29e</metric>
+    <metric>t-zone-29e</metric>
+    <metric>w-zone-29e</metric>
+    <metric>r-zone-29e</metric>
+    <metric>f-zone-29e</metric>
+    <metric>m-zone-30e</metric>
+    <metric>t-zone-30e</metric>
+    <metric>w-zone-30e</metric>
+    <metric>r-zone-30e</metric>
+    <metric>f-zone-30e</metric>
+    <metric>m-zone-31e</metric>
+    <metric>t-zone-31e</metric>
+    <metric>w-zone-31e</metric>
+    <metric>r-zone-31e</metric>
+    <metric>f-zone-31e</metric>
+    <metric>m-zone-38e</metric>
+    <metric>t-zone-38e</metric>
+    <metric>w-zone-38e</metric>
+    <metric>r-zone-38e</metric>
+    <metric>f-zone-38e</metric>
+    <metric>m-zone-78e</metric>
+    <metric>t-zone-78e</metric>
+    <metric>w-zone-78e</metric>
+    <metric>r-zone-78e</metric>
+    <metric>f-zone-78e</metric>
+    <metric>m-zone-116e</metric>
+    <metric>t-zone-116e</metric>
+    <metric>w-zone-116e</metric>
+    <metric>r-zone-116e</metric>
+    <metric>f-zone-116e</metric>
+    <metric>m-zone-134e</metric>
+    <metric>t-zone-134e</metric>
+    <metric>w-zone-134e</metric>
+    <metric>r-zone-134e</metric>
+    <metric>f-zone-134e</metric>
+    <metric>m-zone-166e</metric>
+    <metric>t-zone-166e</metric>
+    <metric>w-zone-166e</metric>
+    <metric>r-zone-166e</metric>
+    <metric>f-zone-166e</metric>
+    <metric>m-zone-186e</metric>
+    <metric>t-zone-186e</metric>
+    <metric>w-zone-186e</metric>
+    <metric>r-zone-186e</metric>
+    <metric>f-zone-186e</metric>
+    <metric>m-zone-187e</metric>
+    <metric>t-zone-187e</metric>
+    <metric>w-zone-187e</metric>
+    <metric>r-zone-187e</metric>
+    <metric>f-zone-187e</metric>
+    <metric>m-zone-188e</metric>
+    <metric>t-zone-188e</metric>
+    <metric>w-zone-188e</metric>
+    <metric>r-zone-188e</metric>
+    <metric>f-zone-188e</metric>
+    <metric>m-zone-190e</metric>
+    <metric>t-zone-190e</metric>
+    <metric>w-zone-190e</metric>
+    <metric>r-zone-190e</metric>
+    <metric>f-zone-190e</metric>
+    <metric>m-zone-191e</metric>
+    <metric>t-zone-191e</metric>
+    <metric>w-zone-191e</metric>
+    <metric>r-zone-191e</metric>
+    <metric>f-zone-191e</metric>
+    <metric>m-zone-193e</metric>
+    <metric>t-zone-193e</metric>
+    <metric>w-zone-193e</metric>
+    <metric>r-zone-193e</metric>
+    <metric>f-zone-193e</metric>
+    <metric>m-zone-194e</metric>
+    <metric>t-zone-194e</metric>
+    <metric>w-zone-194e</metric>
+    <metric>r-zone-194e</metric>
+    <metric>f-zone-194e</metric>
+    <metric>m-zone-195e</metric>
+    <metric>t-zone-195e</metric>
+    <metric>w-zone-195e</metric>
+    <metric>r-zone-195e</metric>
+    <metric>f-zone-195e</metric>
+    <metric>m-zone-196e</metric>
+    <metric>t-zone-196e</metric>
+    <metric>w-zone-196e</metric>
+    <metric>r-zone-196e</metric>
+    <metric>f-zone-196e</metric>
+    <metric>m-zone-197e</metric>
+    <metric>t-zone-197e</metric>
+    <metric>w-zone-197e</metric>
+    <metric>r-zone-197e</metric>
+    <metric>f-zone-197e</metric>
+    <metric>m-zone-198e</metric>
+    <metric>t-zone-198e</metric>
+    <metric>w-zone-198e</metric>
+    <metric>r-zone-198e</metric>
+    <metric>f-zone-198e</metric>
+    <metric>m-zone-199e</metric>
+    <metric>t-zone-199e</metric>
+    <metric>w-zone-199e</metric>
+    <metric>r-zone-199e</metric>
+    <metric>f-zone-199e</metric>
+    <metric>m-zone-200e</metric>
+    <metric>t-zone-200e</metric>
+    <metric>w-zone-200e</metric>
+    <metric>r-zone-200e</metric>
+    <metric>f-zone-200e</metric>
+    <metric>m-zone-201e</metric>
+    <metric>t-zone-201e</metric>
+    <metric>w-zone-201e</metric>
+    <metric>r-zone-201e</metric>
+    <metric>f-zone-201e</metric>
+    <metric>m-zone-202e</metric>
+    <metric>t-zone-202e</metric>
+    <metric>w-zone-202e</metric>
+    <metric>r-zone-202e</metric>
+    <metric>f-zone-202e</metric>
+    <metric>m-zone-203e</metric>
+    <metric>t-zone-203e</metric>
+    <metric>w-zone-203e</metric>
+    <metric>r-zone-203e</metric>
+    <metric>f-zone-203e</metric>
+    <metric>m-zone-204e</metric>
+    <metric>t-zone-204e</metric>
+    <metric>w-zone-204e</metric>
+    <metric>r-zone-204e</metric>
+    <metric>f-zone-204e</metric>
+    <metric>m-zone-205e</metric>
+    <metric>t-zone-205e</metric>
+    <metric>w-zone-205e</metric>
+    <metric>r-zone-205e</metric>
+    <metric>f-zone-205e</metric>
+    <metric>m-zone-206e</metric>
+    <metric>t-zone-206e</metric>
+    <metric>w-zone-206e</metric>
+    <metric>r-zone-206e</metric>
+    <metric>f-zone-206e</metric>
+    <metric>m-zone-207e</metric>
+    <metric>t-zone-207e</metric>
+    <metric>w-zone-207e</metric>
+    <metric>r-zone-207e</metric>
+    <metric>f-zone-207e</metric>
+    <metric>m-zone-208e</metric>
+    <metric>t-zone-208e</metric>
+    <metric>w-zone-208e</metric>
+    <metric>r-zone-208e</metric>
+    <metric>f-zone-208e</metric>
+    <metric>m-zone-209e</metric>
+    <metric>t-zone-209e</metric>
+    <metric>w-zone-209e</metric>
+    <metric>r-zone-209e</metric>
+    <metric>f-zone-209e</metric>
+    <metric>m-zone-210e</metric>
+    <metric>t-zone-210e</metric>
+    <metric>w-zone-210e</metric>
+    <metric>r-zone-210e</metric>
+    <metric>f-zone-210e</metric>
+    <metric>m-zone-211e</metric>
+    <metric>t-zone-211e</metric>
+    <metric>w-zone-211e</metric>
+    <metric>r-zone-211e</metric>
+    <metric>f-zone-211e</metric>
+    <metric>m-zone-212e</metric>
+    <metric>t-zone-212e</metric>
+    <metric>w-zone-212e</metric>
+    <metric>r-zone-212e</metric>
+    <metric>f-zone-212e</metric>
+    <metric>m-zone-213e</metric>
+    <metric>t-zone-213e</metric>
+    <metric>w-zone-213e</metric>
+    <metric>r-zone-213e</metric>
+    <metric>f-zone-213e</metric>
+    <metric>m-zone-214e</metric>
+    <metric>t-zone-214e</metric>
+    <metric>w-zone-214e</metric>
+    <metric>r-zone-214e</metric>
+    <metric>f-zone-214e</metric>
+    <metric>m-zone-215e</metric>
+    <metric>t-zone-215e</metric>
+    <metric>w-zone-215e</metric>
+    <metric>r-zone-215e</metric>
+    <metric>f-zone-215e</metric>
+    <metric>m-zone-216e</metric>
+    <metric>t-zone-216e</metric>
+    <metric>w-zone-216e</metric>
+    <metric>r-zone-216e</metric>
+    <metric>f-zone-216e</metric>
+    <metric>m-zone-217e</metric>
+    <metric>t-zone-217e</metric>
+    <metric>w-zone-217e</metric>
+    <metric>r-zone-217e</metric>
+    <metric>f-zone-217e</metric>
+    <metric>m-zone-218e</metric>
+    <metric>t-zone-218e</metric>
+    <metric>w-zone-218e</metric>
+    <metric>r-zone-218e</metric>
+    <metric>f-zone-218e</metric>
+    <metric>m-zone-219e</metric>
+    <metric>t-zone-219e</metric>
+    <metric>w-zone-219e</metric>
+    <metric>r-zone-219e</metric>
+    <metric>f-zone-219e</metric>
+    <metric>m-zone-220e</metric>
+    <metric>t-zone-220e</metric>
+    <metric>w-zone-220e</metric>
+    <metric>r-zone-220e</metric>
+    <metric>f-zone-220e</metric>
+    <metric>m-zone-221e</metric>
+    <metric>t-zone-221e</metric>
+    <metric>w-zone-221e</metric>
+    <metric>r-zone-221e</metric>
+    <metric>f-zone-221e</metric>
+    <metric>sample-week</metric>
+    <metric>sample-day</metric>
+    <enumeratedValueSet variable="random-seed">
+      <value value="4519"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario">
+      <value value="29"/>
+      <value value="47"/>
+      <value value="49"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="local-seed" first="1" step="1" last="1000"/>
   </experiment>
 </experiments>
 @#$#@#$#@

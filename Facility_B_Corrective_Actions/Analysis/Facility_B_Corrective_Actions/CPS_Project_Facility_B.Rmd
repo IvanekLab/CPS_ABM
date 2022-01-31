@@ -12,6 +12,7 @@ output: pdf_document
 # install.packages('data.table')
 # install.packages('DescTools')
 # install.packages('dplyr')
+# install.packages('EFAtools')
 # install.packages('epiR')
 # install.packages('FactoMineR')
 # install.packages('factoextra')
@@ -22,6 +23,7 @@ output: pdf_document
 # install.packages('gridExtra')
 # install.packages('Hmisc')
 # install.packages('matrixStats')
+# install.packages('psych')
 # install.packages('readxl')
 # install.packages('reshape2')
 # install.packages('sensitivity')
@@ -32,6 +34,7 @@ library(corrplot)
 library(data.table)
 library(DescTools)
 library(dplyr)
+library(EFAtools)
 library(epiR)
 library(FactoMineR)
 library(factoextra)
@@ -42,6 +45,7 @@ library(grid)
 library(gridExtra)
 library(Hmisc)
 library(matrixStats)
+library(psych)
 library(readxl)
 library(reshape2)
 library(sensitivity)
@@ -74,7 +78,7 @@ vector_splitter <- function(x) {
 ```
 
 ```{r create Cluster Data}
-cluster_table <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-11-22-49 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Baseline-table.csv'), skip = 6, sep = ",", header = TRUE)
+cluster_table <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-03-01-21-26 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Baseline-table.csv'), skip = 6, sep = ",", header = TRUE)
 cluster_table <- cluster_table[cluster_table$scenario==0,]
 
 while (any(grepl('-', names(cluster_table), fixed = TRUE))) {
@@ -362,7 +366,7 @@ write.csv(cluster_dataset,paste0(getwd(),'/Data/Cluster Data Averages.csv'), row
 ```
 
 ```{r import Baseline}
-NL_table <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-11-22-49 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Baseline-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-03-21-26 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Baseline-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table <- NL_table[NL_table$scenario==0,]
 
 while (any(grepl('-', names(NL_table), fixed = TRUE))) {
@@ -647,7 +651,7 @@ sites_all <- as.data.frame(v_sites[,c(header_days)])
 ```
 
 ``` {r import Cluster Data}
-agents <-  as.data.frame(read_excel(paste0(getwd(),'/Data/2021-04-18 Cluster Data.xlsx'), 
+agents <-  as.data.frame(read_excel(paste0(getwd(),'/Data/2022-01-13 Cluster Data.xlsx'), 
     n_max = 225))
 
 agent_names <- c('control-panel','produce-crate-01','produce-crate-02','dumper-sandwich-juncture','drain-under-dumper','trench-drain-under-flume','dumper','flume','loading-track-01','loading-track-02','loading-track-03','loading-track-04','brush-bed-inspection','brush-bed-inspection-catch-pan','debris-chute-west','debris-chute-east','fan-rollers','roller-tubing','fan-rollers-catch-pan','flume-exit-rollers','fans','hot-fans','large-debris-filter','npw-bin','warm-fans','npw-belt','rot-trolley','rot-trolley-track','drain-under-cleaning','trench-drain-cleaning','waxer-support','roller-area-sponge-squeegee','npw-bin-feet','produce-crate-03','produce-crate-04','produce-crate-05','crate-filler-01','crate-filler-02','crate-filler-03','loader-belt-01','loader-belt-02','loader-belt-03','reject-belt-01','reject-belt-02','reject-loading-belt-01','reject-loading-belt-02','reject-loading-belt-03','small-produce-filter','small-produce-crate-feed','hot-room-belt','box-belt','box-sticker-printer-01','box-sticker-printer-02','box-sticker-printer-03','box-sticker-printer-04','box-sticker-printer-05','box-sticker-printer-06','box-sticker-printer-07','box-sticker-printer-08','box-sticker-printer-09','floormat-01','floormat-02','floormat-03','floormat-04','floormat-05','floormat-06','floormat-07','floormat-08','floormat-09','floormat-10','floormat-11','floormat-12','floormat-13','floormat-14','floormat-15','floormat-16','floormat-17','floormat-18','large-floormat','packing-belt-18','packing-belt-17','packing-belt-16','packing-belt-15','packing-belt-14','packing-belt-13','packing-belt-12','packing-belt-11','packing-belt-10','packing-belt-09','packing-belt-08','packing-belt-07','packing-belt-06','packing-belt-05','packing-belt-04','packing-belt-03','packing-belt-02','packing-belt-01','packing-roll-01','packing-roll-02','packing-roll-03','packing-roll-04','packing-roll-05','packing-roll-06','packing-roll-07','packing-roll-08','packing-roll-09','packing-roll-10','packing-roll-11','packing-roll-12','packing-roll-13','packing-roll-14','packing-roll-15','packing-roll-16','packing-roll-17','packing-roll-18','track-belt','compact-trolley','tray-belt-18','tray-belt-17','tray-belt-16','tray-belt-15','tray-belt-14','tray-belt-13','tray-belt-12','tray-belt-11','tray-belt-10','tray-belt-09','tray-belt-08','tray-belt-07','tray-belt-06','tray-belt-05','tray-belt-04','tray-belt-03','tray-belt-02','tray-belt-01','tray-storage-01','tray-storage-02','tray-storage-03','tray-storage-04','tray-storage-05','tray-storage-06','tray-storage-07','tray-storage-08','weigh-station-01','weigh-station-02','weigh-station-03','weigh-station-04','weigh-station-05','weigh-station-06','weigh-station-07','weigh-station-08','weigh-station-09','weigh-station-10','weigh-station-11','weigh-station-12','weigh-station-13','weigh-station-14','weigh-station-15','weigh-station-16','weigh-station-17','weigh-station-18','scanner','reject-belt-03','reject-belt-04','reject-belt-05','sorting-station','belt','produce-sticker-01','produce-sticker-02','workstation','forklift-01','forklift-02','employee-01','employee-02','employee-03','employee-04','employee-05','employee-06','employee-07','employee-08','employee-09','employee-10','employee-11','employee-12','employee-13','floor-crack','shovel','pressure-washer-frame','bin-filler-car','bin-car-juncture','main-drain-overflow-juncture','hot-room-flaps','floormat-19','floormat-20','flume-support-beam-lip-underneath','flume-support-beam-sandwich-juncture','railing-interior-by-rollers','outlet-pvc','yellow-sandwich-juncture-bin-fillers','stool','floormat-21','qc-table','monorail-pan-17','red-pallet-jack','under-cable-conduit-by-rollers','brooms-by-wet-rollers','trench-drain-drying','chemical-dolley','gray-roller-tape','return-belt-motor','compact-trolley-mat','under-sizer-platform','blue-brush-drop','floormat-22','light-stand','box-lift','wooden-box-stand','drain-by-dry-rollers','tray-trash-dolley','bin-filler-platform','bin-filler-control-panel','dls-taper-support','return-belt','flume-exterior','flume-support-frame')
@@ -903,7 +907,11 @@ prevalence_melted_validation_shift <- reshape2::melt(NL_table[c('z_sample_mid_pr
 levels(prevalence_melted_validation_shift$variable) <- c('Mid')
 
 mean_point_mid <- length(which(sites_mid=='pos'))/(length(which(sites_mid=='neg'))+length(which(sites_mid=='pos')))*100
-exact_binomial_test <- binom.test(length(which(sites_mid=='pos')),(length(which(sites_mid=='neg'))+length(which(sites_mid=='pos'))))
+exact_binomial_test <- binom.test(
+  x=length(which(sites_mid=='pos')),
+  n=(length(which(sites_mid=='neg'))+length(which(sites_mid=='pos'))),
+  p=mean_point_mid/100
+)
 CI_lower_mid <- exact_binomial_test$conf.int[1]*100
 CI_upper_mid <- exact_binomial_test$conf.int[2]*100
 
@@ -927,7 +935,7 @@ ggplot(prevalence_melted_validation_shift, aes(x=variable, y=value, color=variab
   theme(axis.text.x = element_text(size = 20, angle = 0, hjust = .5, vjust = .5, face = "plain"),
   axis.title.x = element_text(color = "grey20", size = 26, angle = 0, hjust = .5, vjust = 0, face = "plain"),
   axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-ggsave("Fig_2B.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
+# ggsave("Fig_2B.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
 ```
 
 ``` {r Zone Prevalence Validation}
@@ -935,12 +943,20 @@ prevalence_melted_validation_zone <- reshape2::melt(NL_table[c('z2_prev', 'z3_pr
 levels(prevalence_melted_validation_zone$variable) <- c('Zone 2', 'Zone 3')
 
 mean_point_z2 <- length(which(sites_z2=='pos'))/(length(which(sites_z2=='neg'))+length(which(sites_z2=='pos')))*100
-exact_binomial_test <- binom.test(length(which(sites_z2=='pos')),(length(which(sites_z2=='neg'))+length(which(sites_z2=='pos'))))
+exact_binomial_test <- binom.test(
+  x=length(which(sites_z2=='pos')),
+  n=(length(which(sites_z2=='neg'))+length(which(sites_z2=='pos'))),
+  p=mean_point_z2/100
+)
 CI_lower_z2 <- exact_binomial_test$conf.int[1]*100
 CI_upper_z2 <- exact_binomial_test$conf.int[2]*100
 
 mean_point_z3 <- length(which(sites_z3=='pos'))/(length(which(sites_z3=='neg'))+length(which(sites_z3=='pos')))*100
-exact_binomial_test <- binom.test(length(which(sites_z3=='pos')),(length(which(sites_z3=='neg'))+length(which(sites_z3=='pos'))))
+exact_binomial_test <- binom.test(
+  x=length(which(sites_z3=='pos')),
+  n=(length(which(sites_z3=='neg'))+length(which(sites_z3=='pos'))),
+  p=mean_point_z3/100
+  )
 CI_lower_z3 <- exact_binomial_test$conf.int[1]*100
 CI_upper_z3 <- exact_binomial_test$conf.int[2]*100
 
@@ -961,7 +977,7 @@ ggplot(prevalence_melted_validation_zone, aes(x=variable, y=value, color=variabl
   theme(axis.text.x = element_text(size = 20, angle = 0, hjust = .5, vjust = .5, face = "plain"),
   axis.title.x = element_text(color = "grey20", size = 26, angle = 0, hjust = .5, vjust = 0, face = "plain"),
   axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-ggsave("Fig_2D.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
+# ggsave("Fig_2D.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
 ```
 
 ```{r Area Prevalence Validation}
@@ -1066,7 +1082,7 @@ ggplot(prevalence_melted_validation_water, aes(x=variable, y=value, color=variab
   theme(axis.text.x = element_text(size = 20, angle = 0, hjust = .5, vjust = .5, face = "plain"),
   axis.title.x = element_text(color = "grey20", size = 26, angle = 0, hjust = .5, vjust = 0, face = "plain"),
   axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-ggsave("Fig_2F.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
+# ggsave("Fig_2F.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
 ```
 
 ```{r}
@@ -1680,7 +1696,7 @@ ggplot(data_matrix_melted, aes(x = factor(variable), y = value)) +
   ylim(-0.25,0.75) +
   coord_flip() +
   geom_hline(yintercept = 0) +
-  scale_x_discrete(labels = c(expression(tau[21]),expression(tau[11]),expression("P"[21]),expression(alpha),expression("P"["z"]),expression("P"[31]),expression("P"["r"]),expression("R"["d"]),expression("P"[11]),expression("N"["R"])))
+  scale_x_discrete(labels = c(expression(tau[13]),expression("N"["Z"]),expression(tau[11]),expression("P"[22]),expression("P"[21]),expression("P"["z"]),expression(alpha),expression("P"[31]),expression("P"["r"]),expression("R"["d"]),expression("P"[11]),expression("N"["R"])))
 ggsave("Fig 4_B.tiff", device = "tiff", dpi = 600)
 
 #ggplot of all
@@ -3995,10 +4011,25 @@ GGally::ggpairs(agents[,c('contamination_probability','time_contaminated_list_me
 
 ```{r FAMD Cluster}
 # df2 <- agents[,c('zone','height','cleanable','out_links','in_links','undirected_links')]
-df2 <- agents[,c('cleanable','out_links','in_links','undirected_links')]
-# df2 <- agents[,c('zone','cleanable','out_links','undirected_links')]
+# agents <- agents[row.names(agents)!='drain-clean-01',]
+#Original full dataset
+df2 <- agents[,c('zone','height','cleanable','out_links','in_links','undirected_links')]
+cor_matrix <- cor(as.matrix(sapply(df2, as.numeric)))
+KMO(cor_matrix)
+
+#Remove components with KMO MSA less than 0.5
+
+#Bartlett’s Test of Sphericity
+cor_matrix <- cor(as.matrix(sapply(df2, as.numeric)))
+cortest.bartlett(cor_matrix, n = nrow(df2))
 
 #FAMD analysis 
+#Eigenvalue-one criterion
+#Overshoot with large number of dimensions to find EVO limit
+res_famd <- FAMD(df2, graph = FALSE, ncp=5)
+eig_val <- get_eigenvalue(res_famd)
+print(eig_val)
+#Wind back to actual number of dimensions
 res_famd <- FAMD(df2, graph = FALSE, ncp=3)
 
 #visualize output of FAMD/PCA analysis
@@ -4277,13 +4308,34 @@ print(formatC(mean(FAMD5$conc_mid_wed_mean[FAMD5$water=='dry']), format = "e", d
 ```
 
 ```{r PCA Cluster}
-subagents <- agents
+# subagents <- agents
 # subagents <- subagents[rownames(subagents)!='dumper-sandwich-juncture',]
 # subagents <- subagents[rownames(subagents)!='roller-area-sponge-squeegee',]
-df3 <- subagents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+# df3 <- subagents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
 
-#PCA analysis for contamination outcomes - continuous
-res_pca <- PCA(df3, scale.unit = TRUE, ncp = 4, graph = FALSE)
+#Original full dataset
+df3 <- agents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+KMO(cor_matrix)
+
+#Remove components with KMO MSA less than 0.5
+df3 <- agents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+KMO(cor_matrix)
+
+#Bartlett’s Test of Sphericity
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+cortest.bartlett(cor_matrix, n = nrow(df3))
+
+#PCA analysis 
+#Eigenvalue-one criterion
+#Overshoot with large number of dimensions to find EVO limit
+res_pca <- PCA(df3, scale.unit = TRUE, ncp = 5, graph = FALSE)
+eig_val <- get_eigenvalue(res_pca)
+print(eig_val)
+#Wind back to actual number of dimensions
+res_pca <- PCA(df3, scale.unit = TRUE, ncp = 2, graph = FALSE)
+
 
 #visualize output of FAMD/PCA analysis
 #The proportion of variances retained by the different dimensions (axes) can be extracted using the function get_eigenvalue()
@@ -4292,7 +4344,6 @@ eig_val <- get_eigenvalue(res_pca)
 print(eig_val)
 fviz_screeplot(res_pca)
 
-#FAMD- ALL variables analysis
 #The function get_mfa_var() [in factoextra] is used to extract the results for variables. 
 #By default, this function returns a list containing the coordinates, the cos2 and the contribution of all variables
 var <- get_pca_var(res_pca)
@@ -4322,15 +4373,15 @@ fviz_pca_var(res_pca, col.var = "contrib",
 #)
 fviz_pca_ind(res_pca,
              geom.ind = "point", # show points only (nbut not "text")
-             col.ind = subagents$zone, # color by groups
+             col.ind = agents$zone, # color by groups
              palette = c("#00AFBB", "#E7B800", "#FC4E07"),
              addEllipses = TRUE, # Concentration ellipses
              legend.title = "Groups"
 )
-str(subagents)
+str(agents)
 fviz_pca_ind(res_pca,
              geom.ind = "point", # show points only (nbut not "text")
-             col.ind = subagents$cleanable, # color by groups
+             col.ind = agents$cleanable, # color by groups
              palette = c("#00AFBB", "#E7B800", "#FC4E07"),
              addEllipses = TRUE, # Concentration ellipses
              legend.title = "Cleanable"
@@ -4344,7 +4395,7 @@ fviz_pca_biplot(res_pca, select.ind = list(contrib = 10),
 #When you have a mixed data of continuous and categorical variables, you can first perform FAMD (factor analysis of mixed data) or MFA (multiple factor analysis). 
 #Next, you can apply cluster analysis on the FAMD/MFA outputs. nb.clust = 0, user clicks. nb.clust = -1, program decides. or enter any positive integer
 res_hcpc <- HCPC(res_pca, graph = FALSE, nb.clust=-1) #play around with number of clusters, try 2 and see if the match
-subagents$PCAClusters <- (res_hcpc$data.clust$clust)
+agents$PCAClusters <- (res_hcpc$data.clust$clust)
 # agentsubub$PCAClusters <- (res_hcpc$data.clust$clust)
 df3$PCAClustersII<- (res_hcpc$data.clust$clust)
 #save the file with cluster numbers 
@@ -4399,7 +4450,7 @@ res_hcpc$desc.ind$para
 # plot(subagents$conc_mid_mon_median~subagents$contam_mid_mon)
 # plot(subagents$conc_mid_tue_median~subagents$conc_mid_thu_median)
 
-PCA1 <- subset(subagents,PCAClusters==1)
+PCA1 <- subset(agents,PCAClusters==1)
 summary(PCA1)
 print('Cluster 1: Probabilities Mon-Fri')
 print(formatC(mean(PCA1$prob_cont_mon), format = "f", digits = 2))
@@ -4427,7 +4478,7 @@ print(formatC(mean(PCA1$prob_cont_wed[PCA1$water=='dry']), format = "f", digits 
 print('Cluster 1: Concentrations Water')
 print(formatC(mean(PCA1$conc_mid_wed_mean[PCA1$water=='wet']), format = "e", digits = 2))
 print(formatC(mean(PCA1$conc_mid_wed_mean[PCA1$water=='dry']), format = "e", digits = 2))
-PCA2 <- subset(subagents,PCAClusters==2)
+PCA2 <- subset(agents,PCAClusters==2)
 summary(PCA2)
 print('Cluster 2: Probabilities Mon-Fri')
 print(formatC(mean(PCA2$prob_cont_mon), format = "f", digits = 2))
@@ -4455,7 +4506,7 @@ print(formatC(mean(PCA2$prob_cont_wed[PCA2$water=='dry']), format = "f", digits 
 print('Cluster 2: Concentrations Water')
 print(formatC(mean(PCA2$conc_mid_wed_mean[PCA2$water=='wet']), format = "e", digits = 2))
 print(formatC(mean(PCA2$conc_mid_wed_mean[PCA2$water=='dry']), format = "e", digits = 2))
-PCA3 <- subset(subagents,PCAClusters==3)
+PCA3 <- subset(agents,PCAClusters==3)
 summary(PCA3)
 print('Cluster 3: Probabilities Mon-Fri')
 print(formatC(mean(PCA3$prob_cont_mon), format = "f", digits = 2))
@@ -4483,7 +4534,7 @@ print(formatC(mean(PCA3$prob_cont_wed[PCA3$water=='dry']), format = "f", digits 
 print('Cluster 3: Concentrations Water')
 print(formatC(mean(PCA3$conc_mid_wed_mean[PCA3$water=='wet']), format = "e", digits = 2))
 print(formatC(mean(PCA3$conc_mid_wed_mean[PCA3$water=='dry']), format = "e", digits = 2))
-# PCA4 <- subset(subagents,PCAClusters==4)
+# PCA4 <- subset(agents,PCAClusters==4)
 # summary(PCA4)
 # print('Cluster 4: Probabilities Mon-Fri')
 # print(formatC(mean(PCA4$prob_cont_mon), format = "f", digits = 2))
@@ -5274,7 +5325,7 @@ zero_introduction_zone_prev <- rbind(zero_introduction_z1_prev,zero_introduction
 ```
 
 ```{r import Z4 Load 1 Log Reduction}
-NL_table_Z4_Load_1_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-21-17 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Reduction-table_15.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Load_1_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-02-06 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Load_1_Log_Red <- NL_table_Z4_Load_1_Log_Red[NL_table_Z4_Load_1_Log_Red$scenario==15,]
 
 while (any(grepl('-', names(NL_table_Z4_Load_1_Log_Red), fixed = TRUE))) {
@@ -5483,7 +5534,7 @@ z4_load_1_log_red_zone_prev <- rbind(z4_load_1_log_red_z1_prev,z4_load_1_log_red
 ```
 
 ```{r import Z4 Load 2 Log Reduction}
-NL_table_Z4_Load_2_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-21-17 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Reduction-table_16.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Load_2_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-02-06 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Load_2_Log_Red <- NL_table_Z4_Load_2_Log_Red[NL_table_Z4_Load_2_Log_Red$scenario==16,]
 
 while (any(grepl('-', names(NL_table_Z4_Load_2_Log_Red), fixed = TRUE))) {
@@ -5692,7 +5743,7 @@ z4_load_2_log_red_zone_prev <- rbind(z4_load_2_log_red_z1_prev,z4_load_2_log_red
 ```
 
 ```{r import Z4 Load 3 Log Reduction}
-NL_table_Z4_Load_3_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-21-17 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Reduction-table_17.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Load_3_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-02-06 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Load_3_Log_Red <- NL_table_Z4_Load_3_Log_Red[NL_table_Z4_Load_3_Log_Red$scenario==17,]
 
 while (any(grepl('-', names(NL_table_Z4_Load_3_Log_Red), fixed = TRUE))) {
@@ -5882,7 +5933,7 @@ z4_load_3_log_red_eff_prev <- data.frame(
 )
 colnames(z4_load_3_log_red_eff_prev)<- c('prevalence', 'scenario', 'water')
 
-z4_load_3_log_red_z1_prev <- as.data.frame(NL_table_Z4_Load_3_Log_Red$z1_w2wed_prev)
+z4_load_3_log_red_z1_prev <- as.data.frame(NL_tfable_Z4_Load_3_Log_Red$z1_w2wed_prev)
 z4_load_3_log_red_z1_prev$zone <- as.factor('Z1')
 z4_load_3_log_red_z1_prev$scenario <- as.factor('LZ_03')
 names(z4_load_3_log_red_z1_prev) <- c('prevalence','zone','scenario')
@@ -5901,7 +5952,7 @@ z4_load_3_log_red_zone_prev <- rbind(z4_load_3_log_red_z1_prev,z4_load_3_log_red
 ```
 
 ```{r import Z4 Load 0%}
-NL_table_Z4_Load_0pc <- fread(paste0(getwd(),'/BehaviorSpace/2020-10-24-21-02 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Load_0pc <- fread(paste0(getwd(),'/BehaviorSpace/2022-01-19-02-06 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Z4_Load_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Load_0pc <- NL_table_Z4_Load_0pc[NL_table_Z4_Load_0pc$scenario==7,]
 
 while (any(grepl('-', names(NL_table_Z4_Load_0pc), fixed = TRUE))) {
@@ -6074,7 +6125,7 @@ z4_load_0pc_prev <- rbind(z4_load_0pc_loading_prev,z4_load_0pc_cleaning_prev,z4_
 ```
 
 ```{r import Random Load 1 Log Reduction}
-NL_table_Random_Load_1_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-14-03 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions_12-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Load_1_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-23-41 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Load_1_Log_Red <- NL_table_Random_Load_1_Log_Red[NL_table_Random_Load_1_Log_Red$scenario==12,]
 
 while (any(grepl('-', names(NL_table_Random_Load_1_Log_Red), fixed = TRUE))) {
@@ -6283,7 +6334,7 @@ random_load_1_log_red_zone_prev <- rbind(random_load_1_log_red_z1_prev,random_lo
 ```
 
 ```{r import Random Load 2 Log Reduction}
-NL_table_Random_Load_2_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-14-03 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions_13-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Load_2_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-23-41 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Load_2_Log_Red <- NL_table_Random_Load_2_Log_Red[NL_table_Random_Load_2_Log_Red$scenario==13,]
 
 while (any(grepl('-', names(NL_table_Random_Load_2_Log_Red), fixed = TRUE))) {
@@ -6492,7 +6543,7 @@ random_load_2_log_red_zone_prev <- rbind(random_load_2_log_red_z1_prev,random_lo
 ```
 
 ```{r import Random Load 3 Log Reduction}
-NL_table_Random_Load_3_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-14-03 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions_14-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Load_3_Log_Red <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-19-23-41 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Random_Load_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Load_3_Log_Red <- NL_table_Random_Load_3_Log_Red[NL_table_Random_Load_3_Log_Red$scenario==14,]
 
 while (any(grepl('-', names(NL_table_Random_Load_3_Log_Red), fixed = TRUE))) {
@@ -7883,7 +7934,7 @@ red_0_prev <- rbind(red_0_loading_prev,red_0_cleaning_prev,red_0_sorting_prev,re
 ```
 
 ```{r import Reduction 3 Log Improvement}
-NL_table_Red_3_Log_Imp <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-20-03-50 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Sanitation_Effectiveness_Improvement-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Red_3_Log_Imp <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-15-59 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_MI_Series-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Red_3_Log_Imp <- NL_table_Red_3_Log_Imp[NL_table_Red_3_Log_Imp$scenario==18,]
 
 while (any(grepl('-', names(NL_table_Red_3_Log_Imp), fixed = TRUE))) {
@@ -9303,7 +9354,7 @@ uncleanable_agents_prev <- rbind(uncleanable_agents_loading_prev,uncleanable_age
 ```
 
 ```{r import Flume Intervention}
-NL_table_Flume_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-18-00-37 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Flume_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Flume_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-18-23-17 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Flume_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Flume_Intervention <- NL_table_Flume_Intervention[NL_table_Flume_Intervention$scenario==27,]
 
 while (any(grepl('-', names(NL_table_Flume_Intervention), fixed = TRUE))) {
@@ -9512,7 +9563,7 @@ flume_intervention_zone_prev <- rbind(flume_intervention_z1_prev,flume_intervent
 ```
 
 ```{r import Deep Clean Intervention}
-NL_table_Deep_Clean_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-20-03-50 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Sanitation_Effectiveness_Improvement-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Deep_Clean_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-15-59 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_MI_Series-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Deep_Clean_Intervention <- NL_table_Deep_Clean_Intervention[NL_table_Deep_Clean_Intervention$scenario==28,]
 
 while (any(grepl('-', names(NL_table_Deep_Clean_Intervention), fixed = TRUE))) {
@@ -9721,7 +9772,7 @@ deep_clean_intervention_zone_prev <- rbind(deep_clean_intervention_z1_prev,deep_
 ```
 
 ```{r import Full Risk-Based Intervention with Washing & Sanitation Intervention}
-NL_table_Prob_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-18-21-26 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Risk-Based_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Prob_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-18-02-19 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Risk-Based_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Prob_Intervention <- NL_table_Prob_Intervention[NL_table_Prob_Intervention$scenario==25,]
 
 while (any(grepl('-', names(NL_table_Prob_Intervention), fixed = TRUE))) {
@@ -9930,7 +9981,7 @@ prob_intervention_zone_prev <- rbind(prob_intervention_z1_prev,prob_intervention
 ```
 
 ```{r import Partial Risk-Based Intervention with Washing & Sanitation}
-NL_table_Partial_Prob_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-18-21-26 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Risk-Based_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Partial_Prob_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2202-01-20-07-21 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Partial_Prob_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Partial_Prob_Intervention <- NL_table_Partial_Prob_Intervention[NL_table_Partial_Prob_Intervention$scenario==29,]
 
 while (any(grepl('-', names(NL_table_Partial_Prob_Intervention), fixed = TRUE))) {
@@ -10139,7 +10190,7 @@ partial_prob_intervention_zone_prev <- rbind(partial_prob_intervention_z1_prev,p
 ```
 
 ```{r import Random Event Occurences 150% Delay Period}
-NL_table_Random_Prob_150pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-01-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Event_Occurrences_31-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Prob_150pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-19-46 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Prob_150pc <- NL_table_Random_Prob_150pc[NL_table_Random_Prob_150pc$scenario==31,]
 
 while (any(grepl('-', names(NL_table_Random_Prob_150pc), fixed = TRUE))) {
@@ -10340,7 +10391,7 @@ colnames(random_prob_150pc_eff_prev)<- c('prevalence', 'scenario', 'water')
 ```
 
 ```{r import Random Event Occurences 200% Delay Period}
-NL_table_Random_Prob_200pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-01-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Event_Occurrences_32-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Prob_200pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-19-46 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Prob_200pc <- NL_table_Random_Prob_200pc[NL_table_Random_Prob_200pc$scenario==32,]
 
 while (any(grepl('-', names(NL_table_Random_Prob_200pc), fixed = TRUE))) {
@@ -10541,7 +10592,7 @@ colnames(random_prob_200pc_eff_prev)<- c('prevalence', 'scenario', 'water')
 ```
 
 ```{r import Random Event Occurences 250% Delay Period}
-NL_table_Random_Prob_250pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-14-01-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Event_Occurrences_33-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Random_Prob_250pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-19-46 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Random_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Random_Prob_250pc <- NL_table_Random_Prob_250pc[NL_table_Random_Prob_250pc$scenario==33,]
 
 while (any(grepl('-', names(NL_table_Random_Prob_250pc), fixed = TRUE))) {
@@ -10924,7 +10975,7 @@ random_prob_0pc_prev <- rbind(random_prob_0pc_loading_prev,random_prob_0pc_clean
 ```
 
 ```{r import P Z4 Reduction 75%}
-NL_table_Z4_Prob_75pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-10-27 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Event_Occurrences_35-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Prob_75pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-04-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Prob_75pc <- NL_table_Z4_Prob_75pc[NL_table_Z4_Prob_75pc$scenario==35,]
 
 while (any(grepl('-', names(NL_table_Z4_Prob_75pc), fixed = TRUE))) {
@@ -11142,7 +11193,7 @@ z4_prob_75pc_zone_prev <- rbind(z4_prob_75pc_z1_prev,z4_prob_75pc_z2_prev,z4_pro
 ```
 
 ```{r import P Z4 Reduction 50%}
-NL_table_Z4_Prob_50pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-10-27 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Event_Occurrences_36-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Prob_50pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-04-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Prob_50pc <- NL_table_Z4_Prob_50pc[NL_table_Z4_Prob_50pc$scenario==36,]
 
 while (any(grepl('-', names(NL_table_Z4_Prob_50pc), fixed = TRUE))) {
@@ -11360,7 +11411,7 @@ z4_prob_50pc_zone_prev <- rbind(z4_prob_50pc_z1_prev,z4_prob_50pc_z2_prev,z4_pro
 ```
 
 ```{r import P Z4 Reduction 25%}
-NL_table_Z4_Prob_25pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-10-27 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Event_Occurrences_37-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Prob_25pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-04-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Prob_25pc <- NL_table_Z4_Prob_25pc[NL_table_Z4_Prob_25pc$scenario==37,]
 
 while (any(grepl('-', names(NL_table_Z4_Prob_25pc), fixed = TRUE))) {
@@ -11578,7 +11629,7 @@ z4_prob_25pc_zone_prev <- rbind(z4_prob_25pc_z1_prev,z4_prob_25pc_z2_prev,z4_pro
 ```
 
 ```{r import P Z4 Reduction 0%}
-NL_table_Z4_Prob_0pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-10-27 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Event_Occurrences_38-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Z4_Prob_0pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-16-04-23 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_P_Z4_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Z4_Prob_0pc <- NL_table_Z4_Prob_0pc[NL_table_Z4_Prob_0pc$scenario==38,]
 
 while (any(grepl('-', names(NL_table_Z4_Prob_0pc), fixed = TRUE))) {
@@ -11978,7 +12029,7 @@ was_check_prev <- rbind(was_check_loading_prev,was_check_cleaning_prev,was_check
 ```
 
 ```{r import Crate Prev 50%+Partial Prob Intervention W&S}
-NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-02-40 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_CI_S47_48_49-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS <- fread(paste0(getwd(),'/Data/BehaviorSpace/2202-01-20-07-21 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Partial_Prob_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS <- NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS[NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS$scenario==47,]
 
 while (any(grepl('-', names(NL_table_Crate_Prev_50pc_w_Partial_Prob_Intervention_WaS), fixed = TRUE))) {
@@ -12196,7 +12247,7 @@ crate_prev_50pc_w_partial_prob_intervention_was_zone_prev <- rbind(crate_prev_50
 ```
 
 ```{r import Crate prev 50%+Connections Intervention}
-NL_table_Crate_Prev_50pc_w_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-02-40 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_CI_S47_48_49-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Crate_Prev_50pc_w_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-18-09-18 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_CI_S47_48_49-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Crate_Prev_50pc_w_Connections_Intervention <- NL_table_Crate_Prev_50pc_w_Connections_Intervention[NL_table_Crate_Prev_50pc_w_Connections_Intervention$scenario==48,]
 
 while (any(grepl('-', names(NL_table_Crate_Prev_50pc_w_Connections_Intervention), fixed = TRUE))) {
@@ -12412,7 +12463,7 @@ crate_prev_50pc_w_connections_intervention_zone_prev <- rbind(crate_prev_50pc_w_
 ```
 
 ```{r import Partial Prob Intervention W&S+Connections Intervention}
-NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-19-02-40 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_CI_S47_48_49-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2202-01-20-07-21 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Partial_Prob_Interventions-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention <- NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention[NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention$scenario==49,]
 
 while (any(grepl('-', names(NL_table_Partial_Prob_Intervention_WaS_w_Connections_Intervention), fixed = TRUE))) {
@@ -12630,7 +12681,7 @@ partial_prob_intervention_was_w_connections_intervention_zone_prev <- rbind(part
 ```
 
 ```{r import Connections Intervention}
-NL_table_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2021-04-17-05-07 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Connections_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_Connections_Intervention <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-17-23-10 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_Connections_Intervention-table.csv'), skip = 6, sep = ",", header = TRUE)
 NL_table_Connections_Intervention <- NL_table_Connections_Intervention[NL_table_Connections_Intervention$scenario==46,]
 
 while (any(grepl('-', names(NL_table_Connections_Intervention), fixed = TRUE))) {
@@ -12845,6 +12896,252 @@ connections_intervention_z3_prev$scenario <- as.factor('AI_04')
 names(connections_intervention_z3_prev) <- c('prevalence','zone','scenario')
 
 connections_intervention_zone_prev <- rbind(connections_intervention_z1_prev,connections_intervention_z2_prev,connections_intervention_z3_prev)
+```
+
+```{r import New Gamma/Delta}
+NL_table_New_Gamma_Delta <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-03-17-51 ENABLE-Facility_B-50cm_05-Custom 1000_Runs_New_Gamma_Delta_Values-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta[NL_table_New_Gamma_Delta$scenario==40,]
+
+while (any(grepl('-', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "-", "_")))
+}
+while (any(grepl(' ', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., " ", "_")))
+}
+while (any(grepl('[', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "\\[", "")))
+}
+while (any(grepl(']', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "\\]", "")))
+}
+
+list_columns <- c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list')
+
+list_outputs <- NL_table_New_Gamma_Delta[ , ..list_columns]
+
+NL_table_New_Gamma_Delta[, c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list'):=NULL]
+
+NL_table_New_Gamma_Delta <- as.data.frame(NL_table_New_Gamma_Delta)
+
+NL_table_New_Gamma_Delta[NL_table_New_Gamma_Delta==-1] <- NA
+
+NL_table_New_Gamma_Delta <- subset(NL_table_New_Gamma_Delta, select = -c(t_crate_prevalence, w_crate_prevalence, r_crate_prevalence, f_crate_prevalence, t_san_reduction, w_san_reduction, r_san_reduction, f_san_reduction))
+names(NL_table_New_Gamma_Delta)[names(NL_table_New_Gamma_Delta)=='m_crate_prevalence'] <- 'crate_prevalence'
+names(NL_table_New_Gamma_Delta)[names(NL_table_New_Gamma_Delta)=='m_san_reduction'] <- 'san_reduction'
+
+header_list <- c('spread_tc','crate_prevalence','food_conc','food_tc','zone4_load','random_load','san_reduction','p_patch_spread','p_water_spread','p_food_dropped','p_condensation','p_random_noise','p_zone4_intro','p11','p12','p13','p14','p21','p22','p23','p24','p31','p32','p33','p34','p41','p42','p43','p44','tc11','tc12','tc13','tc14','tc21','tc22','tc23','tc24','tc31','tc32','tc33','tc34','tc41','tc42','tc43','tc44')
+
+vector <- NL_table_New_Gamma_Delta$loading_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_loading_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_loading_w2wed_conc_list <- append(new_gamma_delta_loading_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$cleaning_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_cleaning_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_cleaning_w2wed_conc_list <- append(new_gamma_delta_cleaning_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$drying_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_drying_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_drying_w2wed_conc_list <- append(new_gamma_delta_drying_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$sorting_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_sorting_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_sorting_w2wed_conc_list <- append(new_gamma_delta_sorting_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$tray_packing_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_tray_packing_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_tray_packing_w2wed_conc_list <- append(new_gamma_delta_tray_packing_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$reject_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_reject_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_reject_w2wed_conc_list <- append(new_gamma_delta_reject_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$other_w2wed_conc_list
+vector <- vector[vector!='[]']
+new_gamma_delta_other_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_other_w2wed_conc_list <- append(new_gamma_delta_other_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$z1_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_z1_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_z1_w2wed_conc_list <- append(new_gamma_delta_z1_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$z1_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_z2_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_z2_w2wed_conc_list <- append(new_gamma_delta_z2_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$z3_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_z3_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_z3_w2wed_conc_list <- append(new_gamma_delta_z3_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+new_gamma_delta_loading_concs <- as.data.frame(new_gamma_delta_loading_w2wed_conc_list)
+new_gamma_delta_loading_concs$area <- as.factor('loading')
+new_gamma_delta_loading_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_loading_concs$water <- as.factor('Wet')
+names(new_gamma_delta_loading_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_cleaning_concs <- as.data.frame(new_gamma_delta_cleaning_w2wed_conc_list)
+new_gamma_delta_cleaning_concs$area <- as.factor('cleaning')
+new_gamma_delta_cleaning_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_cleaning_concs$water <- as.factor('Wet')
+names(new_gamma_delta_cleaning_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_sorting_concs <- as.data.frame(new_gamma_delta_sorting_w2wed_conc_list)
+new_gamma_delta_sorting_concs$area <- as.factor('sorting')
+new_gamma_delta_sorting_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_sorting_concs$water <- as.factor('Dry')
+names(new_gamma_delta_sorting_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_reject_concs <- as.data.frame(new_gamma_delta_reject_w2wed_conc_list)
+new_gamma_delta_reject_concs$area <- as.factor('reject')
+new_gamma_delta_reject_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_reject_concs$water <- as.factor('Dry')
+names(new_gamma_delta_reject_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_tray_packing_concs <- as.data.frame(new_gamma_delta_tray_packing_w2wed_conc_list)
+new_gamma_delta_tray_packing_concs$area <- as.factor('tray packing')
+new_gamma_delta_tray_packing_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_tray_packing_concs$water <- as.factor('Dry')
+names(new_gamma_delta_tray_packing_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_other_concs <- as.data.frame(new_gamma_delta_other_w2wed_conc_list)
+new_gamma_delta_other_concs$area <- as.factor('other')
+new_gamma_delta_other_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_other_concs$water <- as.factor('Dry')
+names(new_gamma_delta_other_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_concs <- rbind(new_gamma_delta_loading_concs,new_gamma_delta_cleaning_concs,new_gamma_delta_sorting_concs,new_gamma_delta_tray_packing_concs,new_gamma_delta_reject_concs,new_gamma_delta_other_concs)
+
+new_gamma_delta_loading_prev <- as.data.frame(NL_table_New_Gamma_Delta$loading_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_loading_prev$area <- as.factor('loading')
+new_gamma_delta_loading_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_loading_prev$water <- as.factor('Wet')
+names(new_gamma_delta_loading_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_cleaning_prev <- as.data.frame(NL_table_New_Gamma_Delta$cleaning_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_cleaning_prev$area <- as.factor('cleaning')
+new_gamma_delta_cleaning_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_cleaning_prev$water <- as.factor('Wet')
+names(new_gamma_delta_cleaning_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_sorting_prev <- as.data.frame(NL_table_New_Gamma_Delta$sorting_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_sorting_prev$area <- as.factor('sorting')
+new_gamma_delta_sorting_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_sorting_prev$water <- as.factor('Dry')
+names(new_gamma_delta_sorting_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_reject_prev <- as.data.frame(NL_table_New_Gamma_Delta$reject_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_reject_prev$area <- as.factor('reject')
+new_gamma_delta_reject_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_reject_prev$water <- as.factor('Dry')
+names(new_gamma_delta_reject_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_tray_packing_prev <- as.data.frame(NL_table_New_Gamma_Delta$tray_packing_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_tray_packing_prev$area <- as.factor('tray packing')
+new_gamma_delta_tray_packing_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_tray_packing_prev$water <- as.factor('Dry')
+names(new_gamma_delta_tray_packing_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_other_prev <- as.data.frame(NL_table_New_Gamma_Delta$other_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_other_prev$area <- as.factor('other')
+new_gamma_delta_other_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_other_prev$water <- as.factor('Dry')
+names(new_gamma_delta_other_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_prev <- rbind(new_gamma_delta_loading_prev,new_gamma_delta_cleaning_prev,new_gamma_delta_sorting_prev,new_gamma_delta_tray_packing_prev,new_gamma_delta_reject_prev,new_gamma_delta_other_prev)
+
+new_gamma_delta_wet_prev <- as.data.frame(new_gamma_delta_loading_prev$prevalence*21/100+new_gamma_delta_cleaning_prev$prevalence*28/100)/49*100
+new_gamma_delta_wet_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_wet_prev$water <- as.factor('Wet')
+names(new_gamma_delta_wet_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_dry_prev <- as.data.frame(new_gamma_delta_sorting_prev$prevalence*20/100+new_gamma_delta_reject_prev$prevalence*23/100+new_gamma_delta_tray_packing_prev$prevalence*123/100+new_gamma_delta_other_prev$prevalence*10/100)/176*100
+new_gamma_delta_dry_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_dry_prev$water <- as.factor('Dry')
+names(new_gamma_delta_dry_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_recombined_prev <- rbind(new_gamma_delta_wet_prev, new_gamma_delta_dry_prev)
+
+new_gamma_delta_z1_prev <- as.data.frame(NL_table_New_Gamma_Delta$z1_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_z1_prev$zone <- as.factor('Z1')
+new_gamma_delta_z1_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z1_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_z2_prev <- as.data.frame(NL_table_New_Gamma_Delta$z2_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_z2_prev$zone <- as.factor('Z2')
+new_gamma_delta_z2_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z2_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_z3_prev <- as.data.frame(NL_table_New_Gamma_Delta$z3_w2wed_prev[order(NL_table_New_Gamma_Delta$local_seed)])
+new_gamma_delta_z3_prev$zone <- as.factor('Z3')
+new_gamma_delta_z3_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z3_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_zone_prev <- rbind(new_gamma_delta_z1_prev,new_gamma_delta_z2_prev,new_gamma_delta_z3_prev)
+
+new_gamma_delta_z1_concs <- as.data.frame(new_gamma_delta_z1_w2wed_conc_list)
+new_gamma_delta_z1_concs$zone <- as.factor('Z1')
+new_gamma_delta_z1_concs$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z1_concs) <- c('concentration','zone','scenario')
+
+new_gamma_delta_z2_concs <- as.data.frame(new_gamma_delta_z2_w2wed_conc_list)
+new_gamma_delta_z2_concs$zone <- as.factor('Z2')
+new_gamma_delta_z2_concs$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z2_concs) <- c('concentration','zone','scenario')
+
+new_gamma_delta_z3_concs <- as.data.frame(new_gamma_delta_z3_w2wed_conc_list)
+new_gamma_delta_z3_concs$zone <- as.factor('Z3')
+new_gamma_delta_z3_concs$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z3_concs) <- c('concentration','zone','scenario')
+
+new_gamma_delta_zone_concs <- rbind(new_gamma_delta_z1_concs,new_gamma_delta_z2_concs,new_gamma_delta_z3_concs)
 ```
 
 ```{r W2Wed Efficacy}
@@ -14782,4 +15079,68 @@ dry_plot <- ggplot(rbind(baseline_recombined_prev,flume_intervention_recombined_
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "B", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
+```
+
+```{r}
+wet_plot <- ggplot(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev)[which(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev)$water=="Wet"),], aes(x=scenario, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(legend.position = "none") +
+  # ggtitle('A') +
+  scale_fill_manual(values=c("#0C7BDC")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  plot.margin=unit(c(0,0,0,0), "cm"))
+dry_plot <- ggplot(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev)[which(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev)$water=="Dry"),], aes(x=scenario, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('') +
+  ylim(0,100) +
+  theme(legend.position = "none") +
+  # ggtitle('A') +
+  scale_fill_manual(values=c("#FFC20A")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
+  plot.margin=unit(c(0,0,0,-1), "cm"))
+figure <- ggarrange(wet_plot, dry_plot)
+annotate_figure(figure,fig.lab = "B", fig.lab.face = "bold",
+                bottom = text_grob("Scenario", size = 20, y = 1,))
+ggsave("New_Gamma_Delta_Prev_B.tiff", device = "tiff", dpi = 600, compression = "lzw")
+
+wet_plot <- ggplot(rbind(baseline_concs,new_gamma_delta_concs)[which(rbind(baseline_concs,new_gamma_delta_concs)$water=="Wet"),], aes(x=scenario, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(legend.position = "none") +
+  # ggtitle('C') +
+  scale_fill_manual(values=c("#0C7BDC")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  plot.margin=unit(c(0,0,0,0), "cm"))
+dry_plot <- ggplot(rbind(baseline_concs,new_gamma_delta_concs)[which(rbind(baseline_concs,new_gamma_delta_concs)$water=="Dry"),], aes(x=scenario, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('') +
+  ylim(-10,5) +
+  theme(legend.position = "none") +
+  # ggtitle('C') +
+  scale_fill_manual(values=c("#FFC20A")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
+  plot.margin=unit(c(0,0,0,-1), "cm"))
+figure <- ggarrange(wet_plot, dry_plot)
+annotate_figure(figure,fig.lab = "D", fig.lab.face = "bold",
+                bottom = text_grob("Scenario", size = 20, y = 1,))
+ggsave("New_Gamma_Delta_Concs_B.tiff", device = "tiff", dpi = 600, compression = "lzw")
 ```
