@@ -12,6 +12,7 @@ output: pdf_document
 # install.packages('data.table')
 # install.packages('DescTools')
 # install.packages('dplyr')
+# install.packages('EFAtools')
 # install.packages('epiR')
 # install.packages('FactoMineR')
 # install.packages('factoextra')
@@ -22,6 +23,7 @@ output: pdf_document
 # install.packages('gridExtra')
 # install.packages('Hmisc')
 # install.packages('matrixStats')
+# install.packages('psych')
 # install.packages('readxl')
 # install.packages('reshape2')
 # install.packages('sensitivity')
@@ -32,6 +34,7 @@ library(corrplot)
 library(data.table)
 library(DescTools)
 library(dplyr)
+library(EFAtools)
 library(epiR)
 library(FactoMineR)
 library(factoextra)
@@ -42,6 +45,7 @@ library(grid)
 library(gridExtra)
 library(Hmisc)
 library(matrixStats)
+library(psych)
 library(readxl)
 library(reshape2)
 library(sensitivity)
@@ -991,7 +995,7 @@ ggplot(prevalence_melted_validation_shift, aes(x=variable, y=value, color=variab
   theme(axis.text.x = element_text(size = 20, angle = 0, hjust = .5, vjust = .5, face = "plain"),
   axis.title.x = element_text(color = "grey20", size = 26, angle = 0, hjust = .5, vjust = 0, face = "plain"),
   axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-ggsave("Fig_2A.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
+# ggsave("Fig_2A.tiff", device = "tiff", height = 10, width = (9/12) * 10, dpi = 600)
 ```
 
 ``` {r Zone Prevalence Validation}
@@ -1651,10 +1655,25 @@ ggplot(data_matrix_melted, aes(x = variable, y = value)) + geom_bar(stat = "iden
 ```{r FAMD Cluster}
 # df2 <- agents[,c('zone','height','cleanable','out_links','in_links','undirected_links')]
 # agents <- agents[row.names(agents)!='drain-clean-01',]
-# df2 <- agents[,c('zone','height','cleanable','undirected_links')]
-df2 <- agents[,c('zone','cleanable','in_links')]
+#Original full dataset
+df2 <- agents[,c('zone','height','cleanable','out_links','in_links','undirected_links')]
+cor_matrix <- cor(as.matrix(sapply(df2, as.numeric)))
+KMO(cor_matrix)
+
+#Remove components with KMO MSA less than 0.5
+df2 <- agents[,c('zone','height','out_links','in_links','undirected_links')]
+
+#Bartlett’s Test of Sphericity
+cor_matrix <- cor(as.matrix(sapply(df2, as.numeric)))
+cortest.bartlett(cor_matrix, n = nrow(df2))
 
 #FAMD analysis 
+#Eigenvalue-one criterion
+#Overshoot with large number of dimensions to find EVO limit
+res_famd <- FAMD(df2, graph = FALSE, ncp=5)
+eig_val <- get_eigenvalue(res_famd)
+print(eig_val)
+#Wind back to actual number of dimensions
 res_famd <- FAMD(df2, graph = FALSE, ncp=3)
 
 #visualize output of FAMD/PCA analysis
@@ -1700,45 +1719,58 @@ quanti_var
 #For some of the items, more than 2 dimensions might be required to perfectly represent the data.
 
 # Color by cos2 values: quality on the factor map
-# fviz_famd_var(res_famd, "quanti.var", col.var = "cos2",
-#               gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
-#               repel = TRUE)
+# fviz_famd_var(
+#   res_famd,
+#   "quanti.var",
+#   col.var = "cos2",
+#   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+#   repel = TRUE
+# )
 
 #Like quantitative variables, the results for qualitative variables can be extracted as follow:
 quali_var <- get_famd_var(res_famd, "quali.var")
 quali_var 
-fviz_famd_var(res_famd, "quali.var", col.var = "contrib", 
-              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+fviz_famd_var(
+  res_famd,
+  "quali.var",
+  col.var = "contrib", 
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+  )
 
 #To get the results for individuals, type this:
 ind <- get_famd_ind(res_famd)
 ind
-fviz_famd_ind(res_famd, col.ind = "cos2", 
-              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-              repel = FALSE)
-fviz_famd_ind(res_famd, col.ind = "contrib", 
-              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-              repel = FALSE, invisible = "quali.var")
+fviz_famd_ind(
+  res_famd, col.ind = "cos2", 
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = FALSE
+)
+fviz_famd_ind(
+  res_famd, col.ind = "contrib", 
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = FALSE, invisible = "quali.var"
+)
 
 #Individuals with similar profiles are close to each other on the factor map. 
 #It's possible to color the individuals using any of the qualitative variables in the initial data table. 
 #To do this, the argument habillage is used in the fviz_famd_ind() function. 
 #For example, if you want to color the agents according to the supplementary qualitative variable "zone.category", type this:
-fviz_mfa_ind(res_famd, 
-             habillage = "cleanable", # color by groups 
-             #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
-             #addEllipses = TRUE, ellipse.type = "confidence", 
-             repel = FALSE # Avoid text overlapping
-) 
+# fviz_mfa_ind(
+#   res_famd, 
+#   habillage = "cleanable", # color by groups 
+#   #palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+#   #addEllipses = TRUE, ellipse.type = "confidence", 
+#   repel = FALSE # Avoid text overlapping
+# ) 
 
 #If you want to color individuals using multiple categorical variables at the same time, use the function fviz_ellipses() [in factoextra] as follow:
-fviz_ellipses(res_famd,"zone", repel = FALSE)
-fviz_ellipses(res_famd, habillage = c("zone", "cleanable"), repel = FALSE)
+# fviz_ellipses(res_famd,"zone", repel = FALSE)
+# fviz_ellipses(res_famd, habillage = c("zone", "cleanable"), repel = FALSE)
 
 #HCPC - Hierarchical Clustering on Principal Components
 #When you have a mixed data of continuous and categorical variables, you can first perform FAMD (factor analysis of mixed data) or MFA (multiple factor analysis). 
 #Next, you can apply cluster analysis on the FAMD/MFA outputs. nb.clust = 0, user clicks. nb.clust = -1, program decides. or enter any positive integer
-res_hcpc <- HCPC(res_famd, graph = FALSE, nb.clust = -1)
+res_hcpc <- HCPC(res_famd, graph = FALSE, nb.clust = 4)
 res_hc <- hclust(dist(df2))
 fviz_dend(res_hc, rect= TRUE)
 head(res_hcpc$data.clust$clust, 10)
@@ -1750,21 +1782,22 @@ agents$FAMDClusters <- (res_hcpc$data.clust$clust)
 
 #It's possible to visualize individuals on the principal component map and to color individuals according to the cluster they belong to. 
 #The function fviz_cluster() [in factoextra] can be used to visualize individuals clusters.
-fviz_cluster(res_hcpc,
-             geom = "point",
-             repel = FALSE,            # Avoid label overlapping
-             show.clust.cent = TRUE, # Show cluster centers
-             palette = "jco",         # Color palette see ?ggpubr::ggpar
-             ggtheme = theme_minimal(),
-             # main = "Model A: FAMD Agent Attributes Cluster Visualization",
-             main = "A",
-             labelsize = 10,
+fviz_cluster(
+  res_hcpc,
+  geom = "point",
+  repel = FALSE,            # Avoid label overlapping
+  show.clust.cent = TRUE, # Show cluster centers
+  palette = "jco",         # Color palette see ?ggpubr::ggpar
+  ggtheme = theme_minimal(),
+  # main = "Model A: FAMD Agent Attributes Cluster Visualization",
+  main = "A",
+  labelsize = 10,
 ) +
-    # theme(legend.position="bottom")
-    theme(legend.position="none") +
-    geom_text(x=-2.5, y=0, label="fans\nfans-tray\nrot-bin\ndrain-drying-01\nguard-plate-return-empty", hjust = 0, color = "#0073C2FF") +
-    geom_text(x=0, y=1.5, label="tray-belt-02\ntray-belt-05\ntray-belt-06\ntray-belt-07\ntray-belt-08", hjust = 0, color = "#EFC00F") +
-    geom_text(x=2, y=2, label="bag-feed-belt\nbagging-station-04\nbagging-station-05\nbagging-station-06\nbagging-station-07", hjust = 0, color = "#868686FF")
+  # theme(legend.position="bottom")
+  theme(legend.position="none") +
+  # geom_text(x=-2.5, y=0, label="fans\nfans-tray\nrot-bin\ndrain-drying-01\nguard-plate-return-empty", hjust = 0, color = "#0073C2FF") +
+  # geom_text(x=0, y=1.5, label="tray-belt-02\ntray-belt-05\ntray-belt-06\ntray-belt-07\ntray-belt-08", hjust = 0, color = "#EFC00F") +
+  # geom_text(x=2, y=2, label="bag-feed-belt\nbagging-station-04\nbagging-station-05\nbagging-station-06\nbagging-station-07", hjust = 0, color = "#868686FF")
 
 plot(res_hcpc, choice = "3D.map")
 #To display the original data with cluster assignments, type this:
@@ -1872,34 +1905,34 @@ print(formatC(mean(FAMD3$prob_cont_wed[FAMD3$water=='dry']), format = "f", digit
 print('Cluster 3: Concentrations Water')
 print(formatC(mean(FAMD3$conc_mid_wed_mean[FAMD3$water=='wet']), format = "e", digits = 2))
 print(formatC(mean(FAMD3$conc_mid_wed_mean[FAMD3$water=='dry']), format = "e", digits = 2))
-# FAMD4 <- subset(agents,FAMDClusters==4)
-# summary(FAMD4)
-# print('Cluster 4: Probabilities Mon-Fri')
-# print(formatC(mean(FAMD4$prob_cont_mon), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_tue), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_wed), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_thu), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_fri), format = "f", digits = 2))
-# print('Cluster 4: Concentrations Mon-Fri')
-# print(formatC(mean(FAMD4$conc_mid_mon_mean), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_tue_mean), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_wed_mean), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_thu_mean), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_fri_mean), format = "e", digits = 2))
-# print('Cluster 4: Probabilities Zone')
-# print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==1]), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==2]), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==3]), format = "f", digits = 2))
-# print('Cluster 4: Concentrations Zone')
-# print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==1]), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==2]), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==3]), format = "e", digits = 2))
-# print('Cluster 4: Probabilities Water')
-# print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$water=='wet']), format = "f", digits = 2))
-# print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$water=='dry']), format = "f", digits = 2))
-# print('Cluster 4: Concentrations Water')
-# print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$water=='wet']), format = "e", digits = 2))
-# print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$water=='dry']), format = "e", digits = 2))
+FAMD4 <- subset(agents,FAMDClusters==4)
+summary(FAMD4)
+print('Cluster 4: Probabilities Mon-Fri')
+print(formatC(mean(FAMD4$prob_cont_mon), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_tue), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_wed), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_thu), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_fri), format = "f", digits = 2))
+print('Cluster 4: Concentrations Mon-Fri')
+print(formatC(mean(FAMD4$conc_mid_mon_mean), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_tue_mean), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_wed_mean), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_thu_mean), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_fri_mean), format = "e", digits = 2))
+print('Cluster 4: Probabilities Zone')
+print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==1]), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==2]), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$zone==3]), format = "f", digits = 2))
+print('Cluster 4: Concentrations Zone')
+print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==1]), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==2]), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$zone==3]), format = "e", digits = 2))
+print('Cluster 4: Probabilities Water')
+print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$water=='wet']), format = "f", digits = 2))
+print(formatC(mean(FAMD4$prob_cont_wed[FAMD4$water=='dry']), format = "f", digits = 2))
+print('Cluster 4: Concentrations Water')
+print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$water=='wet']), format = "e", digits = 2))
+print(formatC(mean(FAMD4$conc_mid_wed_mean[FAMD4$water=='dry']), format = "e", digits = 2))
 # FAMD5 <- subset(agents,FAMDClusters==5)
 # summary(FAMD5)
 # print('Cluster 5: Probabilities Mon-Fri')
@@ -1932,13 +1965,33 @@ print(formatC(mean(FAMD3$conc_mid_wed_mean[FAMD3$water=='dry']), format = "e", d
 
 ```{r PCA Cluster}
 # df3 <- agents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
-subagents <- agents
+# subagents <- agents
 # subagents <- subagents[rownames(subagents)!='t-pipe-01',]
 # subagents <- subagents[rownames(subagents)!='t-pipe-02',]
 # subagents <- subagents[rownames(subagents)!='produce-crate-02',]
-df3 <- subagents[,c('prob_contamination','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+# df3 <- subagents[,c('prob_contamination','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
 
-#PCA analysis for contamination outcomes - continuous
+#Original full dataset
+df3 <- agents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','contacts_mean','transfers_mean','temp_niche_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+KMO(cor_matrix)
+
+#Remove components with KMO MSA less than 0.5
+df3 <- agents[,c('prob_contamination','time_contaminated_mean','max_contam_bout_mean','niches_estab_mean','conc_mid_mon_mean','conc_mid_tue_mean','conc_mid_wed_mean','conc_mid_thu_mean','conc_mid_fri_mean')]
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+KMO(cor_matrix)
+
+#Bartlett’s Test of Sphericity
+cor_matrix <- cor(as.matrix(sapply(df3, as.numeric)))
+cortest.bartlett(cor_matrix, n = nrow(df3))
+
+#PCA analysis 
+#Eigenvalue-one criterion
+#Overshoot with large number of dimensions to find EVO limit
+res_pca <- PCA(df3, scale.unit = TRUE, ncp = 5, graph = FALSE)
+eig_val <- get_eigenvalue(res_pca)
+print(eig_val)
+#Wind back to actual number of dimensions
 res_pca <- PCA(df3, scale.unit = TRUE, ncp = 3, graph = FALSE)
 
 #visualize output of FAMD/PCA analysis
@@ -2007,32 +2060,34 @@ df3$PCAClustersII<- (res_hcpc$data.clust$clust)
 # write.csv(zones, file ="zones052418_clusterNumbers.csv")
 # write.csv(df3, file ="df3053018_clusterNumbers.csv")
 #To visualize the dendrogram generated by the hierarchical clustering, we'll use the function fviz_dend() [factoextra package]:
-fviz_dend(res_hcpc, 
-          cex = 0.5,                     # Label size
-          labels(row.names(df3)),
-          palette = "jco",               # Color palette see ?ggpubr::ggpar
-          rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
-          rect_border = "jco",           # Rectangle color
-          #labels_track_height = 0.8      # Augment the room for labels
+fviz_dend(
+  res_hcpc, 
+  cex = 0.5,                     # Label size
+  labels(row.names(df3)),
+  palette = "jco",               # Color palette see ?ggpubr::ggpar
+  rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+  rect_border = "jco",           # Rectangle color
+  #labels_track_height = 0.8      # Augment the room for labels
 )
 
 #It's possible to visualize individuals on the principal component map and to color individuals according to the cluster they belong to. 
 #The function fviz_cluster() [in factoextra] can be used to visualize individuals clusters.
-fviz_cluster(res_hcpc,
-             geom = "point",
-             repel = FALSE,            # Avoid label overlapping
-             show.clust.cent = TRUE, # Show cluster centers
-             palette = "jco",         # Color palette see ?ggpubr::ggpar
-             ggtheme = theme_minimal(),
-             # main = "Model A: PCA Agent Outcomes Cluster Visualization",
-             main = "C"
+fviz_cluster(
+  res_hcpc,
+  geom = "point",
+  repel = FALSE,            # Avoid label overlapping
+  show.clust.cent = TRUE, # Show cluster centers
+  palette = "jco",         # Color palette see ?ggpubr::ggpar
+  ggtheme = theme_minimal(),
+  # main = "Model A: PCA Agent Outcomes Cluster Visualization",
+  main = "C"
 )  +
-    # theme(legend.position="bottom")
-    theme(legend.position="none") +
-    geom_text(x=1, y=-1.5, label="employee-tray-04\nemployee-tray-03\nemployee-clean-01\noutlet-13\nsorting-platform-blue-bucket", hjust = 0, color = "#0073C2FF") +
-    geom_text(x=7, y=1.75, label="drain-reject-02\ndrain-sorting-01\ndrain-drying-02\nloader\ntray-belt-11", hjust = 0, color = "#EFC00F") +
-    geom_text(x=2, y=5, label="drain-loading-06\nbrush-bed\ndrain-loading-01\ndrain-loading-02\nbrush-bed-tray", hjust = 0, color = "#868686FF") +
-    geom_text(x=20, y=-1, label="t-pipe-02\nt-pipe-01", hjust = 0, color = "#CD534CFF")
+  # theme(legend.position="bottom")
+  theme(legend.position="none") +
+  geom_text(x=1, y=-1.5, label="employee-tray-04\nemployee-tray-03\nemployee-clean-01\noutlet-13\nsorting-platform-blue-bucket", hjust = 0, color = "#0073C2FF") +
+  geom_text(x=7, y=1.75, label="drain-reject-02\ndrain-sorting-01\ndrain-drying-02\nloader\ntray-belt-11", hjust = 0, color = "#EFC00F") +
+  geom_text(x=2, y=5, label="drain-loading-06\nbrush-bed\ndrain-loading-01\ndrain-loading-02\nbrush-bed-tray", hjust = 0, color = "#868686FF") +
+  geom_text(x=20, y=-1, label="t-pipe-02\nt-pipe-01", hjust = 0, color = "#CD534CFF")
   
 
 plot(res_hcpc, choice = "3D.map")
@@ -11991,6 +12046,454 @@ names(connections_intervention_z3_prev) <- c('prevalence','zone','scenario')
 connections_intervention_zone_prev <- rbind(connections_intervention_z1_prev,connections_intervention_z2_prev,connections_intervention_z3_prev)
 ```
 
+```{r import New Gamma/Delta}
+NL_table_New_Gamma_Delta <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-03-15-27 ENABLE-Facility_A-50cm_05-Custom 1000_Runs_New_Gamma_Delta_Values-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta[NL_table_New_Gamma_Delta$scenario==40,]
+
+while (any(grepl('-', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "-", "_")))
+}
+while (any(grepl(' ', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., " ", "_")))
+}
+while (any(grepl('[', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "\\[", "")))
+}
+while (any(grepl(']', names(NL_table_New_Gamma_Delta), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta <- NL_table_New_Gamma_Delta %>% dplyr::rename_all(list(~stringr::str_replace(., "\\]", "")))
+}
+
+list_columns <- c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list')
+
+list_outputs <- NL_table_New_Gamma_Delta[ , ..list_columns]
+
+NL_table_New_Gamma_Delta[, c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list'):=NULL]
+
+NL_table_New_Gamma_Delta <- as.data.frame(NL_table_New_Gamma_Delta)
+
+NL_table_New_Gamma_Delta[NL_table_New_Gamma_Delta==-1] <- NA
+
+NL_table_New_Gamma_Delta <- subset(NL_table_New_Gamma_Delta, select = -c(t_crate_prevalence, w_crate_prevalence, r_crate_prevalence, f_crate_prevalence, m_cln_reduction, t_cln_reduction, w_cln_reduction, r_cln_reduction))
+names(NL_table_New_Gamma_Delta)[names(NL_table_New_Gamma_Delta)=='m_crate_prevalence'] <- 'crate_prevalence'
+names(NL_table_New_Gamma_Delta)[names(NL_table_New_Gamma_Delta)=='f_cln_reduction'] <- 'cln_reduction'
+names(NL_table_New_Gamma_Delta)[names(NL_table_New_Gamma_Delta)=='a_san_reduction'] <- 'san_reduction'
+
+header_list <- c('spread_tc','crate_prevalence','food_conc','food_tc','zone4_load','random_load','cln_reduction','san_reduction','p_patch_spread','p_water_spread','p_food_dropped','p_condensation','p_random_noise','p_zone4_intro','p11','p12','p13','p14','p21','p22','p23','p24','p31','p32','p33','p34','p41','p42','p43','p44','tc11','tc12','tc13','tc14','tc21','tc22','tc23','tc24','tc31','tc32','tc33','tc34','tc41','tc42','tc43','tc44')
+
+vector <- NL_table_New_Gamma_Delta$loading_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_loading_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_loading_w2wed_conc_list <- append(new_gamma_delta_loading_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$cleaning_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_cleaning_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_cleaning_w2wed_conc_list <- append(new_gamma_delta_cleaning_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$drying_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_drying_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_drying_w2wed_conc_list <- append(new_gamma_delta_drying_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$sorting_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_sorting_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_sorting_w2wed_conc_list <- append(new_gamma_delta_sorting_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$reject_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_reject_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_reject_w2wed_conc_list <- append(new_gamma_delta_reject_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$tray_packing_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_tray_packing_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_tray_packing_w2wed_conc_list <- append(new_gamma_delta_tray_packing_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$bag_packing_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_bag_packing_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_bag_packing_w2wed_conc_list <- append(new_gamma_delta_bag_packing_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta$other_w2wed_conc_list[order(NL_table_New_Gamma_Delta$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_other_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_other_w2wed_conc_list <- append(new_gamma_delta_other_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+new_gamma_delta_loading_concs <- as.data.frame(new_gamma_delta_loading_w2wed_conc_list)
+new_gamma_delta_loading_concs$area <- as.factor('loading')
+new_gamma_delta_loading_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_loading_concs$water <- as.factor('Wet')
+names(new_gamma_delta_loading_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_cleaning_concs <- as.data.frame(new_gamma_delta_cleaning_w2wed_conc_list)
+new_gamma_delta_cleaning_concs$area <- as.factor('cleaning')
+new_gamma_delta_cleaning_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_cleaning_concs$water <- as.factor('Wet')
+names(new_gamma_delta_cleaning_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_sorting_concs <- as.data.frame(new_gamma_delta_sorting_w2wed_conc_list)
+new_gamma_delta_sorting_concs$area <- as.factor('sorting')
+new_gamma_delta_sorting_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_sorting_concs$water <- as.factor('Dry')
+names(new_gamma_delta_sorting_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_reject_concs <- as.data.frame(new_gamma_delta_reject_w2wed_conc_list)
+new_gamma_delta_reject_concs$area <- as.factor('reject')
+new_gamma_delta_reject_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_reject_concs$water <- as.factor('Dry')
+names(new_gamma_delta_reject_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_tray_packing_concs <- as.data.frame(new_gamma_delta_tray_packing_w2wed_conc_list)
+new_gamma_delta_tray_packing_concs$area <- as.factor('tray packing')
+new_gamma_delta_tray_packing_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_tray_packing_concs$water <- as.factor('Dry')
+names(new_gamma_delta_tray_packing_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_bag_packing_concs <- as.data.frame(new_gamma_delta_bag_packing_w2wed_conc_list)
+new_gamma_delta_bag_packing_concs$area <- as.factor('bag packing')
+new_gamma_delta_bag_packing_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_bag_packing_concs$water <- as.factor('Dry')
+names(new_gamma_delta_bag_packing_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_other_concs <- as.data.frame(new_gamma_delta_other_w2wed_conc_list)
+new_gamma_delta_other_concs$area <- as.factor('other')
+new_gamma_delta_other_concs$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_other_concs$water <- as.factor('Dry')
+names(new_gamma_delta_other_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_concs <- rbind(new_gamma_delta_loading_concs,new_gamma_delta_cleaning_concs,new_gamma_delta_sorting_concs,new_gamma_delta_tray_packing_concs,new_gamma_delta_bag_packing_concs,new_gamma_delta_reject_concs,new_gamma_delta_other_concs)
+
+new_gamma_delta_loading_prev <- as.data.frame(NL_table_New_Gamma_Delta$loading_w2wed_prev)
+new_gamma_delta_loading_prev$area <- as.factor('loading')
+new_gamma_delta_loading_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_loading_prev$water <- as.factor('Wet')
+names(new_gamma_delta_loading_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_cleaning_prev <- as.data.frame(NL_table_New_Gamma_Delta$cleaning_w2wed_prev)
+new_gamma_delta_cleaning_prev$area <- as.factor('cleaning')
+new_gamma_delta_cleaning_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_cleaning_prev$water <- as.factor('Wet')
+names(new_gamma_delta_cleaning_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_sorting_prev <- as.data.frame(NL_table_New_Gamma_Delta$sorting_w2wed_prev)
+new_gamma_delta_sorting_prev$area <- as.factor('sorting')
+new_gamma_delta_sorting_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_sorting_prev$water <- as.factor('Dry')
+names(new_gamma_delta_sorting_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_reject_prev <- as.data.frame(NL_table_New_Gamma_Delta$reject_w2wed_prev)
+new_gamma_delta_reject_prev$area <- as.factor('reject')
+new_gamma_delta_reject_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_reject_prev$water <- as.factor('Dry')
+names(new_gamma_delta_reject_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_tray_packing_prev <- as.data.frame(NL_table_New_Gamma_Delta$tray_packing_w2wed_prev)
+new_gamma_delta_tray_packing_prev$area <- as.factor('tray packing')
+new_gamma_delta_tray_packing_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_tray_packing_prev$water <- as.factor('Dry')
+names(new_gamma_delta_tray_packing_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_bag_packing_prev <- as.data.frame(NL_table_New_Gamma_Delta$bag_packing_w2wed_prev)
+new_gamma_delta_bag_packing_prev$area <- as.factor('bag packing')
+new_gamma_delta_bag_packing_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_bag_packing_prev$water <- as.factor('Dry')
+names(new_gamma_delta_bag_packing_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_other_prev <- as.data.frame(NL_table_New_Gamma_Delta$other_w2wed_prev)
+new_gamma_delta_other_prev$area <- as.factor('other')
+new_gamma_delta_other_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_other_prev$water <- as.factor('Dry')
+names(new_gamma_delta_other_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_prev <- rbind(new_gamma_delta_loading_prev,new_gamma_delta_cleaning_prev,new_gamma_delta_sorting_prev,new_gamma_delta_tray_packing_prev,new_gamma_delta_bag_packing_prev,new_gamma_delta_reject_prev,new_gamma_delta_other_prev)
+
+new_gamma_delta_wet_prev <- as.data.frame(new_gamma_delta_loading_prev$prevalence*27/100+new_gamma_delta_cleaning_prev$prevalence*26/100)/53*100
+new_gamma_delta_wet_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_wet_prev$water <- as.factor('Wet')
+names(new_gamma_delta_wet_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_dry_prev <- as.data.frame(new_gamma_delta_sorting_prev$prevalence*16/100+new_gamma_delta_reject_prev$prevalence*9/100+new_gamma_delta_tray_packing_prev$prevalence*73/100+new_gamma_delta_bag_packing_prev$prevalence*60/100+new_gamma_delta_other_prev$prevalence*13/100)/171*100
+new_gamma_delta_dry_prev$scenario <- as.factor('New Gamma/Delta')
+new_gamma_delta_dry_prev$water <- as.factor('Dry')
+names(new_gamma_delta_dry_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_recombined_prev <- rbind(new_gamma_delta_wet_prev, new_gamma_delta_dry_prev)
+
+new_gamma_delta_z1_prev <- as.data.frame(NL_table_New_Gamma_Delta$z1_w2wed_prev)
+new_gamma_delta_z1_prev$zone <- as.factor('Z1')
+new_gamma_delta_z1_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z1_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_z2_prev <- as.data.frame(NL_table_New_Gamma_Delta$z2_w2wed_prev)
+new_gamma_delta_z2_prev$zone <- as.factor('Z2')
+new_gamma_delta_z2_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z2_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_z3_prev <- as.data.frame(NL_table_New_Gamma_Delta$z2_w2wed_prev)
+new_gamma_delta_z3_prev$zone <- as.factor('Z3')
+new_gamma_delta_z3_prev$scenario <- as.factor('New Gamma/Delta')
+names(new_gamma_delta_z3_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_zone_prev <- rbind(new_gamma_delta_z1_prev,new_gamma_delta_z2_prev,new_gamma_delta_z3_prev)
+```
+
+```{r import New Gamma/Delta 50%}
+NL_table_New_Gamma_Delta_50pc <- fread(paste0(getwd(),'/Data/BehaviorSpace/2022-01-14-23-53 ENABLE-Facility_A-50cm_05-Custom 1000_Runs_New_Gamma_Delta_Values_50_pc-table.csv'), skip = 6, sep = ",", header = TRUE)
+NL_table_New_Gamma_Delta_50pc <- NL_table_New_Gamma_Delta_50pc[NL_table_New_Gamma_Delta_50pc$scenario==50,]
+
+while (any(grepl('-', names(NL_table_New_Gamma_Delta_50pc), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta_50pc <- NL_table_New_Gamma_Delta_50pc %>% dplyr::rename_all(list(~stringr::str_replace(., "-", "_")))
+}
+while (any(grepl(' ', names(NL_table_New_Gamma_Delta_50pc), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta_50pc <- NL_table_New_Gamma_Delta_50pc %>% dplyr::rename_all(list(~stringr::str_replace(., " ", "_")))
+}
+while (any(grepl('[', names(NL_table_New_Gamma_Delta_50pc), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta_50pc <- NL_table_New_Gamma_Delta_50pc %>% dplyr::rename_all(list(~stringr::str_replace(., "\\[", "")))
+}
+while (any(grepl(']', names(NL_table_New_Gamma_Delta_50pc), fixed = TRUE))) {
+  NL_table_New_Gamma_Delta_50pc <- NL_table_New_Gamma_Delta_50pc %>% dplyr::rename_all(list(~stringr::str_replace(., "\\]", "")))
+}
+
+list_columns <- c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list')
+
+list_outputs <- NL_table_New_Gamma_Delta_50pc[ , ..list_columns]
+
+NL_table_New_Gamma_Delta_50pc[, c('z1_conc_time_list','z1_conc_time_cleanable_list','z1_conc_time_uncleanable_list','z2_conc_time_list','z2_conc_time_cleanable_list','z2_conc_time_uncleanable_list','z3_conc_time_list','z3_conc_time_cleanable_list','z3_conc_time_uncleanable_list','cleaning_conc_time_list','drying_conc_time_list','loading_conc_time_list','reject_conc_time_list','sorting_conc_time_list','other_conc_time_list','cleaning_conc_time_cleanable_list','drying_conc_time_cleanable_list','loading_conc_time_cleanable_list','reject_conc_time_cleanable_list','sorting_conc_time_cleanable_list','other_conc_time_cleanable_list','cleaning_conc_time_uncleanable_list','drying_conc_time_uncleanable_list','loading_conc_time_uncleanable_list','reject_conc_time_uncleanable_list','sorting_conc_time_uncleanable_list','other_conc_time_uncleanable_list','cluster_conc_mid_mon_list','cluster_conc_mid_tue_list','cluster_conc_mid_wed_list','cluster_conc_mid_thu_list','cluster_conc_mid_fri_list','cluster_conc_mid_mon_median_list','cluster_conc_mid_tue_median_list','cluster_conc_mid_wed_median_list','cluster_conc_mid_thu_median_list','cluster_conc_mid_fri_median_list','cluster_conc_mid_mon_mean_list','cluster_conc_mid_tue_mean_list','cluster_conc_mid_wed_mean_list','cluster_conc_mid_thu_mean_list','cluster_conc_mid_fri_mean_list'):=NULL]
+
+NL_table_New_Gamma_Delta_50pc <- as.data.frame(NL_table_New_Gamma_Delta_50pc)
+
+NL_table_New_Gamma_Delta_50pc[NL_table_New_Gamma_Delta_50pc==-1] <- NA
+
+NL_table_New_Gamma_Delta_50pc <- subset(NL_table_New_Gamma_Delta_50pc, select = -c(t_crate_prevalence, w_crate_prevalence, r_crate_prevalence, f_crate_prevalence, m_cln_reduction, t_cln_reduction, w_cln_reduction, r_cln_reduction))
+names(NL_table_New_Gamma_Delta_50pc)[names(NL_table_New_Gamma_Delta_50pc)=='m_crate_prevalence'] <- 'crate_prevalence'
+names(NL_table_New_Gamma_Delta_50pc)[names(NL_table_New_Gamma_Delta_50pc)=='f_cln_reduction'] <- 'cln_reduction'
+names(NL_table_New_Gamma_Delta_50pc)[names(NL_table_New_Gamma_Delta_50pc)=='a_san_reduction'] <- 'san_reduction'
+
+header_list <- c('spread_tc','crate_prevalence','food_conc','food_tc','zone4_load','random_load','cln_reduction','san_reduction','p_patch_spread','p_water_spread','p_food_dropped','p_condensation','p_random_noise','p_zone4_intro','p11','p12','p13','p14','p21','p22','p23','p24','p31','p32','p33','p34','p41','p42','p43','p44','tc11','tc12','tc13','tc14','tc21','tc22','tc23','tc24','tc31','tc32','tc33','tc34','tc41','tc42','tc43','tc44')
+
+vector <- NL_table_New_Gamma_Delta_50pc$loading_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_loading_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_loading_w2wed_conc_list <- append(new_gamma_delta_50pc_loading_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$cleaning_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_cleaning_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_cleaning_w2wed_conc_list <- append(new_gamma_delta_50pc_cleaning_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$drying_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_drying_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_drying_w2wed_conc_list <- append(new_gamma_delta_50pc_drying_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$sorting_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_sorting_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_sorting_w2wed_conc_list <- append(new_gamma_delta_50pc_sorting_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$reject_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_reject_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_reject_w2wed_conc_list <- append(new_gamma_delta_50pc_reject_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$tray_packing_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_tray_packing_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_tray_packing_w2wed_conc_list <- append(new_gamma_delta_50pc_tray_packing_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$bag_packing_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_bag_packing_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_bag_packing_w2wed_conc_list <- append(new_gamma_delta_50pc_bag_packing_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+vector <- NL_table_New_Gamma_Delta_50pc$other_w2wed_conc_list[order(NL_table_New_Gamma_Delta_50pc$local_seed)]
+vector <- vector[vector!='[]']
+new_gamma_delta_50pc_other_w2wed_conc_list <- numeric()
+i <- 1
+while (i<=length(vector)) {
+  new_gamma_delta_50pc_other_w2wed_conc_list <- append(new_gamma_delta_50pc_other_w2wed_conc_list, as.numeric(as.vector(strsplit(gsub('\\[|\\]', '', as.character(vector[i])), "\\s+")[[1]])))
+  i <- i+1
+}
+
+new_gamma_delta_50pc_loading_concs <- as.data.frame(new_gamma_delta_50pc_loading_w2wed_conc_list)
+new_gamma_delta_50pc_loading_concs$area <- as.factor('loading')
+new_gamma_delta_50pc_loading_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_loading_concs$water <- as.factor('Wet')
+names(new_gamma_delta_50pc_loading_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_cleaning_concs <- as.data.frame(new_gamma_delta_50pc_cleaning_w2wed_conc_list)
+new_gamma_delta_50pc_cleaning_concs$area <- as.factor('cleaning')
+new_gamma_delta_50pc_cleaning_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_cleaning_concs$water <- as.factor('Wet')
+names(new_gamma_delta_50pc_cleaning_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_sorting_concs <- as.data.frame(new_gamma_delta_50pc_sorting_w2wed_conc_list)
+new_gamma_delta_50pc_sorting_concs$area <- as.factor('sorting')
+new_gamma_delta_50pc_sorting_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_sorting_concs$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_sorting_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_reject_concs <- as.data.frame(new_gamma_delta_50pc_reject_w2wed_conc_list)
+new_gamma_delta_50pc_reject_concs$area <- as.factor('reject')
+new_gamma_delta_50pc_reject_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_reject_concs$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_reject_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_tray_packing_concs <- as.data.frame(new_gamma_delta_50pc_tray_packing_w2wed_conc_list)
+new_gamma_delta_50pc_tray_packing_concs$area <- as.factor('tray packing')
+new_gamma_delta_50pc_tray_packing_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_tray_packing_concs$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_tray_packing_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_bag_packing_concs <- as.data.frame(new_gamma_delta_50pc_bag_packing_w2wed_conc_list)
+new_gamma_delta_50pc_bag_packing_concs$area <- as.factor('bag packing')
+new_gamma_delta_50pc_bag_packing_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_bag_packing_concs$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_bag_packing_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_other_concs <- as.data.frame(new_gamma_delta_50pc_other_w2wed_conc_list)
+new_gamma_delta_50pc_other_concs$area <- as.factor('other')
+new_gamma_delta_50pc_other_concs$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_other_concs$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_other_concs) <- c('concentration','area','scenario','water')
+
+new_gamma_delta_50pc_concs <- rbind(new_gamma_delta_50pc_loading_concs,new_gamma_delta_50pc_cleaning_concs,new_gamma_delta_50pc_sorting_concs,new_gamma_delta_50pc_tray_packing_concs,new_gamma_delta_50pc_bag_packing_concs,new_gamma_delta_50pc_reject_concs,new_gamma_delta_50pc_other_concs)
+
+new_gamma_delta_50pc_loading_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$loading_w2wed_prev)
+new_gamma_delta_50pc_loading_prev$area <- as.factor('loading')
+new_gamma_delta_50pc_loading_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_loading_prev$water <- as.factor('Wet')
+names(new_gamma_delta_50pc_loading_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_cleaning_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$cleaning_w2wed_prev)
+new_gamma_delta_50pc_cleaning_prev$area <- as.factor('cleaning')
+new_gamma_delta_50pc_cleaning_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_cleaning_prev$water <- as.factor('Wet')
+names(new_gamma_delta_50pc_cleaning_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_sorting_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$sorting_w2wed_prev)
+new_gamma_delta_50pc_sorting_prev$area <- as.factor('sorting')
+new_gamma_delta_50pc_sorting_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_sorting_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_sorting_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_reject_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$reject_w2wed_prev)
+new_gamma_delta_50pc_reject_prev$area <- as.factor('reject')
+new_gamma_delta_50pc_reject_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_reject_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_reject_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_tray_packing_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$tray_packing_w2wed_prev)
+new_gamma_delta_50pc_tray_packing_prev$area <- as.factor('tray packing')
+new_gamma_delta_50pc_tray_packing_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_tray_packing_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_tray_packing_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_bag_packing_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$bag_packing_w2wed_prev)
+new_gamma_delta_50pc_bag_packing_prev$area <- as.factor('bag packing')
+new_gamma_delta_50pc_bag_packing_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_bag_packing_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_bag_packing_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_other_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$other_w2wed_prev)
+new_gamma_delta_50pc_other_prev$area <- as.factor('other')
+new_gamma_delta_50pc_other_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_other_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_other_prev) <- c('prevalence','area','scenario','water')
+
+new_gamma_delta_50pc_prev <- rbind(new_gamma_delta_50pc_loading_prev,new_gamma_delta_50pc_cleaning_prev,new_gamma_delta_50pc_sorting_prev,new_gamma_delta_50pc_tray_packing_prev,new_gamma_delta_50pc_bag_packing_prev,new_gamma_delta_50pc_reject_prev,new_gamma_delta_50pc_other_prev)
+
+new_gamma_delta_50pc_wet_prev <- as.data.frame(new_gamma_delta_50pc_loading_prev$prevalence*27/100+new_gamma_delta_50pc_cleaning_prev$prevalence*26/100)/53*100
+new_gamma_delta_50pc_wet_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_wet_prev$water <- as.factor('Wet')
+names(new_gamma_delta_50pc_wet_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_50pc_dry_prev <- as.data.frame(new_gamma_delta_50pc_sorting_prev$prevalence*16/100+new_gamma_delta_50pc_reject_prev$prevalence*9/100+new_gamma_delta_50pc_tray_packing_prev$prevalence*73/100+new_gamma_delta_50pc_bag_packing_prev$prevalence*60/100+new_gamma_delta_50pc_other_prev$prevalence*13/100)/171*100
+new_gamma_delta_50pc_dry_prev$scenario <- as.factor('New Gamma/Delta 50%')
+new_gamma_delta_50pc_dry_prev$water <- as.factor('Dry')
+names(new_gamma_delta_50pc_dry_prev) <- c('prevalence','scenario','water')
+
+new_gamma_delta_50pc_recombined_prev <- rbind(new_gamma_delta_50pc_wet_prev, new_gamma_delta_50pc_dry_prev)
+
+new_gamma_delta_50pc_z1_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$z1_w2wed_prev)
+new_gamma_delta_50pc_z1_prev$zone <- as.factor('Z1')
+new_gamma_delta_50pc_z1_prev$scenario <- as.factor('New Gamma/Delta 50%')
+names(new_gamma_delta_50pc_z1_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_50pc_z2_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$z2_w2wed_prev)
+new_gamma_delta_50pc_z2_prev$zone <- as.factor('Z2')
+new_gamma_delta_50pc_z2_prev$scenario <- as.factor('New Gamma/Delta 50%')
+names(new_gamma_delta_50pc_z2_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_50pc_z3_prev <- as.data.frame(NL_table_New_Gamma_Delta_50pc$z2_w2wed_prev)
+new_gamma_delta_50pc_z3_prev$zone <- as.factor('Z3')
+new_gamma_delta_50pc_z3_prev$scenario <- as.factor('New Gamma/Delta 50%')
+names(new_gamma_delta_50pc_z3_prev) <- c('prevalence','zone','scenario')
+
+new_gamma_delta_50pc_zone_prev <- rbind(new_gamma_delta_50pc_z1_prev,new_gamma_delta_50pc_z2_prev,new_gamma_delta_50pc_z3_prev)
+```
+
 ```{r W2Wed Efficacy}
 c_wet <- 0.5/53
 c_dry <- 0.5/171
@@ -12291,6 +12794,308 @@ dry_efficacy <- rbind(dry_efficacy, de)
 
 rownames(wet_efficacy) <- NULL
 rownames(dry_efficacy) <- NULL
+```
+
+```{r W2Wed Efficacy 5-95}
+c_wet <- 0.5/53
+c_dry <- 0.5/171
+
+wet_efficacy_95 <- data.frame(
+  scenario=character(),
+  median=double(),
+  upper_quartile=double(),
+  lower_quartile=double(),
+  stringsAsFactors=FALSE
+)
+dry_efficacy_95 <- data.frame(
+  scenario=character(),
+  median=double(),
+  lower_quartile=double(),
+  upper_quartile=double(),
+  stringsAsFactors=FALSE
+)
+
+
+#Random
+#PR_01
+we <- data.frame("PR_01",round(median((1-(random_prob_150pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_prob_150pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_150pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PR_01",round(median((1-(random_prob_150pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_prob_150pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_150pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PR_02
+we <- data.frame("PR_02",round(median((1-(random_prob_200pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_prob_200pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_200pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PR_02",round(median((1-(random_prob_200pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_prob_200pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_200pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PR_03
+we <- data.frame("PR_03",round(median((1-(random_prob_250pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_prob_250pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_250pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PR_03",round(median((1-(random_prob_250pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_prob_250pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_prob_250pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LR
+#LR_01
+we <- data.frame("LR_01",round(median((1-(random_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LR_01",round(median((1-(random_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LR_02
+we <- data.frame("LR_02",round(median((1-(random_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LR_02",round(median((1-(random_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LR_03
+we <- data.frame("LR_03",round(median((1-(random_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(random_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LR_03",round(median((1-(random_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(random_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(random_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PZ
+#PZ_01
+we <- data.frame("PZ_01",round(median((1-(z4_prob_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_prob_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PZ_01",round(median((1-(z4_prob_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_prob_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PZ_02
+we <- data.frame("PZ_02",round(median((1-(z4_prob_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_prob_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PZ_02",round(median((1-(z4_prob_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_prob_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PZ_03
+we <- data.frame("PZ_03",round(median((1-(z4_prob_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_prob_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PZ_03",round(median((1-(z4_prob_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_prob_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#PZ_04
+we <- data.frame("PZ_04",round(median((1-(z4_prob_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_prob_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("PZ_04",round(median((1-(z4_prob_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_prob_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_prob_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LZ
+#LZ_01
+we <- data.frame("LZ_01",round(median((1-(z4_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_1_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LZ_01",round(median((1-(z4_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_1_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LZ_02
+we <- data.frame("LZ_02",round(median((1-(z4_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_2_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LZ_02",round(median((1-(z4_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_2_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#LZ_03
+we <- data.frame("LZ_03",round(median((1-(z4_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(z4_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_3_log_red_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("LZ_03",round(median((1-(z4_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(z4_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(z4_load_3_log_red_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#EC
+#EC_01
+we <- data.frame("EC_01",round(median((1-(crate_prev_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_75pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("EC_01",round(median((1-(crate_prev_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_75pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#EC_02
+we <- data.frame("EC_02",round(median((1-(crate_prev_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("EC_02",round(median((1-(crate_prev_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#EC_03
+we <- data.frame("EC_03",round(median((1-(crate_prev_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_25pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("EC_03",round(median((1-(crate_prev_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_25pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#EC_04
+we <- data.frame("EC_04",round(median((1-(crate_prev_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_0pc_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("EC_04",round(median((1-(crate_prev_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_0pc_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#MI
+#MI_01
+we <- data.frame("MI_01",round(median((1-(red_3_log_imp_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(red_3_log_imp_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(red_3_log_imp_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("MI_01",round(median((1-(red_3_log_imp_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(red_3_log_imp_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(red_3_log_imp_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#MI_02
+we <- data.frame("MI_02",round(median((1-(deep_clean_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(deep_clean_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(deep_clean_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("MI_02",round(median((1-(deep_clean_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(deep_clean_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(deep_clean_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI
+#AI_01
+we <- data.frame("AI_01",round(median((1-(flume_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(flume_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(flume_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_01",round(median((1-(flume_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(flume_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(flume_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_02
+we <- data.frame("AI_02",NA,NA,NA)
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_02",NA,NA,NA)
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_02C1
+we <- data.frame("AI_02C1",round(median((1-(prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_02C1",round(median((1-(prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_03
+we <- data.frame("AI_03",NA,NA,NA)
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_03",NA,NA,NA)
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_03C1
+we <- data.frame("AI_03C1",round(median((1-(partial_prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(partial_prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(partial_prob_intervention_cln_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_03C1",round(median((1-(partial_prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(partial_prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(partial_prob_intervention_cln_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_02C2
+we <- data.frame("AI_02C2",round(median((1-(prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_02C2",round(median((1-(prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_03C2
+we <- data.frame("AI_03C2",round(median((1-(partial_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(partial_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(partial_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_03C2",round(median((1-(partial_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(partial_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(partial_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#AI_04
+we <- data.frame("AI_04",round(median((1-(connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("AI_04",round(median((1-(connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#CI
+#CI_01
+we <- data.frame("CI_01",round(median((1-(crate_prev_50pc_w_full_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_50pc_w_full_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_w_full_prob_intervention_was_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("CI_01",round(median((1-(crate_prev_50pc_w_full_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_50pc_w_full_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_w_full_prob_intervention_was_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#CI_02
+we <- data.frame("CI_02",round(median((1-(crate_prev_50pc_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(crate_prev_50pc_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("CI_02",round(median((1-(crate_prev_50pc_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(crate_prev_50pc_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(crate_prev_50pc_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+#CI_03
+we <- data.frame("CI_03",round(median((1-(full_prob_intervention_was_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100),1),round(quantile((1-(full_prob_intervention_was_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(full_prob_intervention_was_w_connections_intervention_wet_prev$prevalence+c_wet)/(baseline_wet_prev$prevalence+c_wet))*100,c(0.05, 0.95)),1)[2])
+names(we) <- c("scenario","median","lower_quartile","upper_quartile")
+wet_efficacy_95 <- rbind(wet_efficacy_95, we)
+
+de <- data.frame("CI_03",round(median((1-(full_prob_intervention_was_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100),1),round(quantile((1-(full_prob_intervention_was_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[1],round(quantile((1-(full_prob_intervention_was_w_connections_intervention_dry_prev$prevalence+c_dry)/(baseline_dry_prev$prevalence+c_dry))*100,c(0.05, 0.95)),1)[2])
+names(de) <- c("scenario","median","lower_quartile","upper_quartile")
+dry_efficacy_95 <- rbind(dry_efficacy_95, de)
+
+rownames(wet_efficacy_95) <- NULL
+rownames(dry_efficacy_95) <- NULL
 ```
 
 ```{r W2Wed Prevalences}
@@ -12982,7 +13787,7 @@ ggplot(wet_efficacy) +
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
   )
-ggsave("Fig 5A_A.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 5A_A.tiff", device = "tiff", dpi = 600, compression = "lzw")
 ggplot(dry_efficacy) +
   geom_errorbar(aes(x=scenario, y=median, ymin=lower_quartile, ymax=upper_quartile)) +
   scale_y_continuous(breaks = seq(from = -100, to = 100, by = 20)) +
@@ -12999,7 +13804,7 @@ ggplot(dry_efficacy) +
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
   )
-ggsave("Fig 5A_B.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 5A_B.tiff", device = "tiff", dpi = 600, compression = "lzw")
 
 ####Figure 6####
 wet_plot <- ggplot(rbind(baseline_recombined_prev,crate_prev_75pc_recombined_prev,crate_prev_50pc_recombined_prev,crate_prev_25pc_recombined_prev,crate_prev_0pc_recombined_prev)[which(rbind(baseline_recombined_prev,crate_prev_75pc_recombined_prev,crate_prev_50pc_recombined_prev,crate_prev_25pc_recombined_prev,crate_prev_0pc_recombined_prev)$water=="Wet"),], aes(x=scenario, y=prevalence, fill=water)) +
@@ -13031,7 +13836,7 @@ dry_plot <- ggplot(rbind(baseline_recombined_prev,crate_prev_75pc_recombined_pre
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "A", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
-ggsave("Fig 6_A.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 6_A.tiff", device = "tiff", dpi = 600, compression = "lzw")
 
 wet_plot <- ggplot(rbind(baseline_concs,crate_prev_75pc_concs,crate_prev_50pc_concs,crate_prev_25pc_concs,crate_prev_0pc_concs)[which(rbind(baseline_concs,crate_prev_75pc_concs,crate_prev_50pc_concs,crate_prev_25pc_concs,crate_prev_0pc_concs)$water=="Wet"),], aes(x=scenario, y=log10(concentration), fill=water)) +
   geom_boxplot() +
@@ -13062,7 +13867,7 @@ dry_plot <- ggplot(rbind(baseline_concs,crate_prev_75pc_concs,crate_prev_50pc_co
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "C", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
-ggsave("Fig 6_C.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 6_C.tiff", device = "tiff", dpi = 600, compression = "lzw")
 
 ####Figure 7####
 wet_plot <- ggplot(rbind(baseline_recombined_prev,red_3_log_imp_recombined_prev,deep_clean_intervention_recombined_prev)[which(rbind(baseline_recombined_prev,red_3_log_imp_recombined_prev,deep_clean_intervention_recombined_prev)$water=="Wet"),], aes(x=scenario, y=prevalence, fill=water)) +
@@ -13094,7 +13899,7 @@ dry_plot <- ggplot(rbind(baseline_recombined_prev,red_3_log_imp_recombined_prev,
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "A", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
-ggsave("Fig 7_A.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 7_A.tiff", device = "tiff", dpi = 600, compression = "lzw")
 
 wet_plot <- ggplot(rbind(baseline_concs,red_3_log_imp_concs,deep_clean_intervention_concs)[which(rbind(baseline_concs,red_3_log_imp_concs,deep_clean_intervention_concs)$water=="Wet"),], aes(x=scenario, y=log10(concentration), fill=water)) +
   geom_boxplot() +
@@ -13125,7 +13930,7 @@ dry_plot <- ggplot(rbind(baseline_concs,red_3_log_imp_concs,deep_clean_intervent
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "C", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
-ggsave("Fig 7_C.tiff", device = "tiff", dpi = 600)
+ggsave("Fig 7_C.tiff", device = "tiff", dpi = 600, compression = "lzw")
 
 ####Figure 8####
 wet_plot <- ggplot(rbind(baseline_recombined_prev,flume_intervention_recombined_prev,prob_intervention_cln_recombined_prev,prob_intervention_was_recombined_prev,partial_prob_intervention_cln_recombined_prev,partial_prob_intervention_was_recombined_prev,connections_intervention_recombined_prev)[which(rbind(baseline_recombined_prev,flume_intervention_recombined_prev,prob_intervention_cln_recombined_prev,prob_intervention_was_recombined_prev,partial_prob_intervention_cln_recombined_prev,partial_prob_intervention_was_recombined_prev,connections_intervention_recombined_prev)$water=="Wet"),], aes(x=scenario, y=prevalence, fill=water)) +
@@ -14435,5 +15240,69 @@ dry_plot <- ggplot(rbind(baseline_recombined_prev,flume_intervention_recombined_
 figure <- ggarrange(wet_plot, dry_plot)
 annotate_figure(figure,fig.lab = "A", fig.lab.face = "bold",
                 bottom = text_grob("Scenario", size = 20, y = 1,))
+```
+
+```{r}
+wet_plot <- ggplot(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev,new_gamma_delta_50pc_recombined_prev)[which(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev,new_gamma_delta_50pc_recombined_prev)$water=="Wet"),], aes(x=scenario, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('Prevalence %') +
+  ylim(0,100) +
+  theme(legend.position = "none") +
+  # ggtitle('A') +
+  scale_fill_manual(values=c("#0C7BDC")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  plot.margin=unit(c(0,0,0,0), "cm"))
+dry_plot <- ggplot(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev,new_gamma_delta_50pc_recombined_prev)[which(rbind(baseline_recombined_prev,new_gamma_delta_recombined_prev,new_gamma_delta_50pc_recombined_prev)$water=="Dry"),], aes(x=scenario, y=prevalence, fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('') +
+  ylim(0,100) +
+  theme(legend.position = "none") +
+  # ggtitle('A') +
+  scale_fill_manual(values=c("#FFC20A")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
+  plot.margin=unit(c(0,0,0,-1), "cm"))
+figure <- ggarrange(wet_plot, dry_plot)
+annotate_figure(figure,fig.lab = "A", fig.lab.face = "bold",
+                bottom = text_grob("Scenario", size = 20, y = 1,))
+ggsave("New_Gamma_Delta_Prev_A.tiff", device = "tiff", dpi = 600, compression = "lzw")
+
+wet_plot <- ggplot(rbind(baseline_concs,new_gamma_delta_concs,new_gamma_delta_50pc_concs)[which(rbind(baseline_concs,new_gamma_delta_concs,new_gamma_delta_50pc_concs)$water=="Wet"),], aes(x=scenario, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab(expression(Log["10"]*" CFU/cm sq.")) +
+  ylim(-10,5) +
+  theme(legend.position = "none") +
+  # ggtitle('C') +
+  scale_fill_manual(values=c("#0C7BDC")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  plot.margin=unit(c(0,0,0,0), "cm"))
+dry_plot <- ggplot(rbind(baseline_concs,new_gamma_delta_concs,new_gamma_delta_50pc_concs)[which(rbind(baseline_concs,new_gamma_delta_concs,new_gamma_delta_50pc_concs)$water=="Dry"),], aes(x=scenario, y=log10(concentration), fill=water)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('') +
+  ylim(-10,5) +
+  theme(legend.position = "none") +
+  # ggtitle('C') +
+  scale_fill_manual(values=c("#FFC20A")) +
+  theme(axis.text.x = element_text(size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
+  axis.title.x = element_text(color = "grey20", size = 20, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+  axis.title.y = element_text(color = "grey20", size = 20, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
+  plot.margin=unit(c(0,0,0,-1), "cm"))
+figure <- ggarrange(wet_plot, dry_plot)
+annotate_figure(figure,fig.lab = "C", fig.lab.face = "bold",
+                bottom = text_grob("Scenario", size = 20, y = 1,))
+ggsave("New_Gamma_Delta_Concs_A.tiff", device = "tiff", dpi = 600, compression = "lzw")
 ```
 
